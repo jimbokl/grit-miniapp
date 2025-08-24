@@ -276,6 +276,26 @@ function onReady() {
   // Генерация плана (в разделе Цели)
   const genForm = document.getElementById('gen-form');
   const genResult = document.getElementById('gen-result');
+  function fillPlanStructure(structured) {
+    const map = [
+      ['plan-daily-ritual','daily_ritual'],
+      ['plan-mini-plan','mini_plan'],
+      ['plan-focus-blocks','focus_blocks'],
+      ['plan-anti-slip','anti_slip'],
+      ['plan-weekly-markers','weekly_markers'],
+    ];
+    map.forEach(([ulId, key]) => {
+      const ul = document.getElementById(ulId);
+      if (!ul) return;
+      ul.innerHTML = '';
+      const arr = structured?.[key] || [];
+      arr.forEach((text) => {
+        const li = document.createElement('li');
+        li.innerHTML = `<input type="checkbox"/> ${text}`;
+        ul.appendChild(li);
+      });
+    });
+  }
   genForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     genResult.classList.remove('hidden');
@@ -287,18 +307,16 @@ function onReady() {
     if (!task || time <= 0) return showToast('Заполните задачу и время');
     try {
       const data = await postJSON('/api/plan/generate', { init: getInitDataUnsafe(), task, frequency, time_minutes: time, constraints });
-      const structured = data?.structured;
-      if (structured && (structured.daily_ritual?.length || structured.mini_plan?.length || structured.focus_blocks?.length || structured.anti_slip?.length || structured.weekly_markers?.length)) {
-        genResult.textContent = '';
-        const node = renderPlan(structured, data?.plan_text || '');
-        if (typeof node === 'string') { genResult.textContent = node; }
-        else { genResult.replaceChildren(node); }
-      } else {
-        const parsed = parsePlanTextToStructured(data?.plan_text || '');
-        const node = renderPlan(parsed, data?.plan_text || '');
-        if (typeof node === 'string') { genResult.textContent = node; }
-        else { genResult.replaceChildren(node); }
-      }
+      const structured = data?.structured && (data.structured.daily_ritual?.length || data.structured.mini_plan?.length || data.structured.focus_blocks?.length || data.structured.anti_slip?.length || data.structured.weekly_markers?.length)
+        ? data.structured
+        : parsePlanTextToStructured(data?.plan_text || '');
+      // persist
+      const s = ensureDefaults(loadState());
+      s.lastGeneratedPlan = { task, frequency, time_minutes: time, constraints, structured, plan_text: data?.plan_text || '' };
+      saveState(s);
+      // fill UI
+      fillPlanStructure(structured);
+      genResult.textContent = 'План сохранён и разложен по структуре ниже';
       tg?.HapticFeedback?.notificationOccurred('success');
     } catch (err) {
       console.error(err); genResult.textContent = 'Ошибка генерации'; showToast('Ошибка генерации'); tg?.HapticFeedback?.notificationOccurred('error');
