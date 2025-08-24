@@ -71,6 +71,32 @@
           <button class="btn primary" type="submit">Сохранить цели</button>
         </form>
         <div id="goals-saved" class="onb-result hidden"></div>
+        <hr style="border-color: var(--border); margin: 12px 0;" />
+        <h3 style="margin-top:0">Сгенерировать план удержания фокуса</h3>
+        <form id="gen-form" class="form-grid" autocomplete="off">
+          <label class="full">
+            <span>Задача</span>
+            <input id="gen-task" type="text" placeholder="Напр.: Видео каждый день" />
+          </label>
+          <label>
+            <span>Частота</span>
+            <select id="gen-frequency">
+              <option value="daily">Ежедневно</option>
+              <option value="weekdays">Пн–Пт</option>
+              <option value="custom">Выбор дней</option>
+            </select>
+          </label>
+          <label>
+            <span>Время (мин)</span>
+            <input id="gen-time" type="number" min="5" step="5" placeholder="60" />
+          </label>
+          <label class="full">
+            <span>Ограничения</span>
+            <input id="gen-constraints" type="text" placeholder="Телефон, вечерние слоты" />
+          </label>
+          <button type="submit" class="btn success">Сгенерировать</button>
+        </form>
+        <div id="gen-result" class="onb-result hidden"></div>
       </section>
 
       <section class="card hidden" data-tab-section="day">

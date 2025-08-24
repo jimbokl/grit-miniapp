@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: grit-backend
+    env: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: backend/Dockerfile
+    autoDeploy: true
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+    healthCheckPath: /healthz

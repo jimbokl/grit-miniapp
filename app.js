@@ -115,6 +115,26 @@ function onReady() {
     goalsSaved.classList.remove('hidden');
   });
 
+  // Генерация плана (в разделе Цели)
+  const genForm = document.getElementById('gen-form');
+  const genResult = document.getElementById('gen-result');
+  genForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const task = document.getElementById('gen-task').value.trim();
+    const frequency = document.getElementById('gen-frequency').value;
+    const time = Number(document.getElementById('gen-time').value || 0);
+    const constraints = document.getElementById('gen-constraints').value.trim();
+    if (!task || time <= 0) return showToast('Заполните задачу и время');
+    try {
+      const data = await postJSON('/api/plan/generate', { init: getInitDataUnsafe(), task, frequency, time_minutes: time, constraints });
+      genResult.textContent = data?.plan_text || 'План готов.';
+      genResult.classList.remove('hidden');
+      tg?.HapticFeedback?.notificationOccurred('success');
+    } catch (err) {
+      console.error(err); showToast('Ошибка генерации'); tg?.HapticFeedback?.notificationOccurred('error');
+    }
+  });
+
   // Оставшиеся обработчики (план/факт)
   planForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
