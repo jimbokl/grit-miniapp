@@ -1,0 +1,36 @@
+          <ul class="onb-list">
+            <li><strong>Что такое «касания»</strong>: любые целевые контакты по продаже/продвижению (звонок, личка, письмо, встреча).</li>
+            <li><strong>Зачем этот бот</strong>: держать ритм. Утром — план, днём — факт, вечером — сверка. Так растёт выручка.</li>
+            <li><strong>Утро</strong>: внесите план — касания, демо, фокус (мин).</li>
+            <li><strong>Днём</strong>: отмечайте факты быстрыми инпутами ниже.</li>
+            <li><strong>Вечер</strong>: сверка обещано/сделано — цель: идеальный день.</li>
+            <li><strong>Серия</strong>: если тяжело — отметьте «минимум», цепочку не ломаем.</li>
+          </ul>
+          <form id="onb-form" class="form-grid" autocomplete="off">
+            <label class="full">
+              <span>Главная задача (пример: «Видео каждый день»)</span>
+              <input id="onb-task" type="text" placeholder="Опишите цель простыми словами" />
+            </label>
+            <label>
+              <span>Частота</span>
+              <select id="onb-frequency">
+                <option value="daily">Ежедневно</option>
+                <option value="weekdays">Пн–Пт</option>
+                <option value="custom">Выбор дней</option>
+              </select>
+            </label>
+            <label>
+              <span>Время в день (мин)</span>
+              <input id="onb-time" type="number" min="5" step="5" placeholder="например, 60" />
+            </label>
+            <label class="full">
+              <span>Ограничения/условия</span>
+              <input id="onb-constraints" type="text" placeholder="Нет студии, только телефон; вечерние слоты" />
+            </label>
+            <div class="onb-actions">
+              <button id="onb-generate" class="btn primary" type="submit">Сгенерировать план</button>
+              <button id="onb-ok" class="btn ghost" type="button">Понятно</button>
+            </div>
+          </form>
+          <div id="onb-result" class="onb-result hidden"></div>
+          <p class="onb-tip">Подсказка: маленькие шаги ежедневно дают большой прогресс.</p>
