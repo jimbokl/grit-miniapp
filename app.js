@@ -15,7 +15,9 @@ function applyTelegramTheme() {
 
 function getApiBase() {
   const ls = (typeof localStorage !== 'undefined') ? localStorage.getItem('GRIT_API_BASE') : '';
-  return ls || window.GRIT_API_BASE || 'http://localhost:8000';
+  if (ls) return ls;
+  if (window.location.hostname === 'jimbokl.github.io') return 'https://nflowsserver.com/grit';
+  return window.GRIT_API_BASE || 'http://localhost:8000';
 }
 
 function showToast(message) {
