@@ -3,149 +3,172 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Grit — Mini App</title>
+    <title>Grit-тренер — Mini App</title>
     <link rel="preconnect" href="https://telegram.org" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
     <main class="container" id="app-root">
-      <div id="onboarding-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="onb-title">
-        <div class="modal-backdrop" data-onb-close></div>
-        <div class="modal-card">
-          <h2 id="onb-title">Как работать с Grit за день</h2>
-          <ul class="onb-list">
-            <li><strong>Grit</strong>: держим ритм к долгосрочной цели.</li>
-            <li><strong>День</strong>: утро — план; днём — факты; вечер — сверка.</li>
-            <li><strong>Шаг</strong>: маленькая победа каждый день важнее идеала.</li>
-          </ul>
-          <p class="onb-tip">Подсказка: сфокусируйтесь на одном важном действии сегодня.</p>
-          <div class="onb-actions">
-            <button id="onb-ok" class="btn primary" type="button">Понятно</button>
-          </div>
-        </div>
-      </div>
-
+      <!-- Header -->
       <header class="header">
-        <h1>Grit-тренер</h1>
-        <p class="subtitle">Персональный коуч по настойчивости: цель → ритуал → фокус → прогресс</p>
+        <div class="hdr-left">
+          <div class="avatar" aria-label="Аватар">DG</div>
+        </div>
+        <div class="hdr-center">
+          <div class="level-text"><span class="lvl">LVL 8:</span> <strong>Упорный Скалолаз</strong></div>
+          <div class="lvl-bar"><div class="lvl-bar__fill" style="width: 45%"></div></div>
+        </div>
+        <div class="hdr-right">
+          <button class="icon-btn" data-tab="profile" aria-label="Настройки">⚙️</button>
+        </div>
       </header>
 
-      <nav class="tabs" aria-label="Навигация">
-        <button class="tab active" data-tab="grit-test">Grit‑тест</button>
-        <button class="tab" data-tab="goals">Цели</button>
-        <button class="tab" data-tab="day">День</button>
-        <button class="tab" data-tab="stats">Статистика</button>
+      <!-- Tabs content -->
+      <section class="tab-section" data-tab-section="path">
+        <h2 class="sr-only">Путь</h2>
+        <div class="card focus-card">
+          <label class="focus-check">
+            <input type="checkbox" id="focus-done" />
+            <span class="focus-circle"></span>
+            <span class="focus-text">Фокус дня: Завершить сценарий видео</span>
+          </label>
+          <div class="focus-done-banner">Отличная работа!</div>
+        </div>
+
+        <div class="widgets">
+          <div class="widget streak">
+            <div class="w-title">Стрик</div>
+            <div class="w-value">🔥 <strong id="streak-val">14</strong></div>
+            <div class="w-sub">дней в пути</div>
+          </div>
+          <div class="widget effort">
+            <div class="w-title">Усилия за неделю</div>
+            <div class="effort-ring" data-effort="85">
+              <div class="effort-ring__inner">85%</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card goals-compact">
+          <div class="card-title">Актуальные цели</div>
+          <ul class="gl-list">
+            <li>
+              <div class="gl-title">Опубликовать 5 видео</div>
+              <div class="gl-bar"><div class="gl-fill" style="width: 40%"></div></div>
+            </li>
+            <li>
+              <div class="gl-title">Подготовить презентацию</div>
+              <div class="gl-bar"><div class="gl-fill" style="width: 70%"></div></div>
+            </li>
+          </ul>
+        </div>
+
+        <button id="open-checkin" class="btn primary large">Подвести итоги дня</button>
+      </section>
+
+      <section class="tab-section hidden" data-tab-section="goals">
+        <h2 class="sr-only">Цели</h2>
+        <div class="card">
+          <div class="card-title">Высшая цель</div>
+          <div class="gl-title">100 видео за 100 дней</div>
+        </div>
+        <div class="card">
+          <div class="card-title">Среднесрочные цели</div>
+          <div class="accordion">
+            <details>
+              <summary><span>Сценарии</span> <span class="acc-progress">2/5</span></summary>
+              <ul class="acc-tasks">
+                <li><input type="checkbox"/> Темы недели</li>
+                <li><input type="checkbox"/> Структура роликов</li>
+              </ul>
+            </details>
+            <details>
+              <summary><span>Монтаж</span> <span class="acc-progress">1/3</span></summary>
+              <ul class="acc-tasks">
+                <li><input type="checkbox"/> Пресеты</li>
+              </ul>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-section hidden" data-tab-section="progress">
+        <h2 class="sr-only">Прогресс</h2>
+        <div class="card">
+          <div class="seg-switch">
+            <button class="seg on" data-range="week">Неделя</button>
+            <button class="seg" data-range="month">Месяц</button>
+            <button class="seg" data-range="year">Год</button>
+          </div>
+          <div class="heatmap-placeholder">Тепловая карта активности</div>
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-val">21</div><div class="kpi-label">Макс. стрик</div></div>
+            <div class="kpi"><div class="kpi-val">58</div><div class="kpi-label">Задач выполнено</div></div>
+            <div class="kpi"><div class="kpi-val">4.2</div><div class="kpi-label">Средний балл усилий</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-section hidden" data-tab-section="gym">
+        <h2 class="sr-only">Тренажёр</h2>
+        <div class="chip-row">
+          <button class="chip on" data-chip="interest">Интерес</button>
+          <button class="chip" data-chip="practice">Практика</button>
+          <button class="chip" data-chip="purpose">Цель</button>
+          <button class="chip" data-chip="hope">Надежда</button>
+        </div>
+        <div class="card">
+          <div class="card-title">Рекомендация дня</div>
+          <p>5 минут: разогрев — распиши 3 темы роликов.</p>
+        </div>
+        <div class="card">
+          <div class="exercise-list">
+            <div class="ex-item"><span>⏱️ 5 мин</span> Осознанная практика: «микрошаги»</div>
+            <div class="ex-item"><span>⏱️ 10 мин</span> Техника Помидоро (1 спринт)</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tab-section hidden" data-tab-section="profile">
+        <h2 class="sr-only">Профиль</h2>
+        <div class="card">
+          <div class="card-title">Профиль</div>
+          <p>Имя: Дмитрий</p>
+          <p>Часовой пояс: Europe/Moscow</p>
+        </div>
+      </section>
+
+      <!-- Bottom Tab Bar -->
+      <nav class="tabbar" aria-label="Навигация">
+        <button class="tab on" data-tab="path">🏔️<span>Путь</span></button>
+        <button class="tab" data-tab="goals">🎯<span>Цели</span></button>
+        <button class="tab" data-tab="progress">📈<span>Прогресс</span></button>
+        <button class="tab" data-tab="gym">🧠<span>Тренажёр</span></button>
+        <button class="tab" data-tab="profile">👤<span>Профиль</span></button>
       </nav>
-
-      <section class="card hidden" data-tab-section="grit-test">
-        <h2>Grit‑тест (краткий)</h2>
-        <p class="subtitle">Оцените настойчивость по шкале 1–5 (1 — редко, 5 — всегда)</p>
-        <form id="grit-form" class="form-grid">
-          <label class="full"><span>Я заканчиваю всё, что начинаю</span>
-            <select name="q1"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option></select>
-          </label>
-          <label class="full"><span>Неудачи не выбивают меня из колеи</span>
-            <select name="q2"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
-          </label>
-          <label class="full"><span>Я работаю усердно каждый день</span>
-            <select name="q3"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option></select>
-          </label>
-          <label class="full"><span>Я долго держу интерес к одной большой цели</span>
-            <select name="q4"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
-          </label>
-          <button class="btn primary" type="submit">Посчитать</button>
-        </form>
-        <div id="grit-result" class="onb-result hidden"></div>
-      </section>
-
-      <section class="card hidden" data-tab-section="goals">
-        <h2>Цели</h2>
-        <form id="goals-form" class="form-grid">
-          <label class="full"><span>Главная цель</span>
-            <input id="goal-main" type="text" placeholder="Напр.: 100 видео за 100 дней" />
-          </label>
-          <label class="full"><span>Подцели (через запятую)</span>
-            <input id="goal-sub" type="text" placeholder="Напр.: сценарии, монтаж, публикация" />
-          </label>
-          <button class="btn primary" type="submit">Сохранить цели</button>
-        </form>
-        <div id="goals-saved" class="onb-result hidden"></div>
-        <hr style="border-color: var(--border); margin: 12px 0;" />
-        <h3 style="margin-top:0">Сгенерировать план удержания фокуса</h3>
-        <form id="gen-form" class="form-grid" autocomplete="off">
-          <label class="full">
-            <span>Задача</span>
-            <input id="gen-task" type="text" placeholder="Напр.: Видео каждый день" />
-          </label>
-          <label>
-            <span>Частота</span>
-            <select id="gen-frequency">
-              <option value="daily">Ежедневно</option>
-              <option value="weekdays">Пн–Пт</option>
-              <option value="custom">Выбор дней</option>
-            </select>
-          </label>
-          <label>
-            <span>Время (мин)</span>
-            <input id="gen-time" type="number" min="5" step="5" placeholder="60" />
-          </label>
-          <label class="full">
-            <span>Ограничения</span>
-            <input id="gen-constraints" type="text" placeholder="Телефон, вечерние слоты" />
-          </label>
-          <button type="submit" class="btn success">Сгенерировать</button>
-        </form>
-        <div id="gen-result" class="onb-result hidden"></div>
-      </section>
-
-      <section class="card hidden" data-tab-section="day">
-        <h2>День</h2>
-        <form id="plan-form" class="form-grid" autocomplete="off">
-          <label>
-            <span>Действия (шт)</span>
-            <small class="hint">любые шаги к главной цели</small>
-            <input id="plan-touches" type="number" min="0" inputmode="numeric" placeholder="например, 20" />
-          </label>
-          <label>
-            <span>Сессии (шт)</span>
-            <small class="hint">встречи/презентации/практики</small>
-            <input id="plan-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
-          </label>
-          <label class="full">
-            <span>Глубокая работа (мин)</span>
-            <small class="hint">сконцентрированное время без отвлечений</small>
-            <input id="plan-focus" type="number" min="0" inputmode="numeric" placeholder="например, 90" />
-          </label>
-          <button type="submit" class="btn primary">Отправить план</button>
-        </form>
-
-        <form id="fact-form" class="form-grid" autocomplete="off">
-          <label>
-            <span>Действия +</span>
-            <small class="hint">фиксируем сделанные шаги</small>
-            <input id="fact-touches" type="number" min="0" inputmode="numeric" placeholder="например, 5" />
-          </label>
-          <label>
-            <span>Сессии +</span>
-            <small class="hint">встречи/презентации/практики</small>
-            <input id="fact-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
-          </label>
-          <label class="full">
-            <span>Глубокая работа + (мин)</span>
-            <small class="hint">добавьте минуты фокуса</small>
-            <input id="fact-focus" type="number" min="0" inputmode="numeric" placeholder="например, 30" />
-          </label>
-          <button type="submit" class="btn success">Добавить факт</button>
-        </form>
-      </section>
-
-      <section class="card hidden" data-tab-section="stats">
-        <h2>Статистика</h2>
-        <p class="subtitle">Здесь будет прогресс по идеальным дням и метрикам (MVP).</p>
-        <div id="stats-box" class="onb-result">Пока пусто. Заполните «День» и вернитесь позже.</div>
-      </section>
     </main>
+
+    <!-- Evening Check-in Modal -->
+    <div id="checkin-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="chk-title">
+      <div class="modal-backdrop" data-close="checkin"></div>
+      <div class="modal-card">
+        <h2 id="chk-title">Как прошёл твой день?</h2>
+        <label class="full"><span>Оцени усилия (1–5)</span>
+          <input id="chk-effort" type="range" min="1" max="5" step="1" value="3" />
+        </label>
+        <label class="full"><span>Главная победа сегодня</span>
+          <textarea id="chk-win" rows="3" placeholder="Коротко…"></textarea>
+        </label>
+        <label class="full"><span>Что было самым сложным?</span>
+          <textarea id="chk-challenge" rows="3" placeholder="Коротко…"></textarea>
+        </label>
+        <div class="onb-actions">
+          <button id="chk-save" class="btn primary">Сохранить день</button>
+          <button class="btn ghost" data-close="checkin">Отмена</button>
+        </div>
+      </div>
+    </div>
 
     <script src="./app.js" type="module"></script>
   </body>

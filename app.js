@@ -53,12 +53,8 @@ async function postJSON(url, data) {
 }
 
 function switchTab(name) {
-  document.querySelectorAll('[data-tab-section]')?.forEach((el) => {
-    el.classList.toggle('hidden', el.getAttribute('data-tab-section') !== name);
-  });
-  document.querySelectorAll('.tab')?.forEach((btn) => {
-    btn.classList.toggle('active', btn.getAttribute('data-tab') === name);
-  });
+  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.getAttribute('data-tab') === name));
+  document.querySelectorAll('.tab-section').forEach((s) => s.classList.toggle('hidden', s.getAttribute('data-tab-section') !== name));
 }
 
 function bindTabs() {
@@ -76,22 +72,36 @@ function calcGritScore(form) {
 
 function onReady() {
   applyTelegramTheme?.();
-  bindTabs();
-  switchTab('grit-test');
 
-  const planForm = document.getElementById('plan-form');
-  const factForm = document.getElementById('fact-form');
-  const modal = document.getElementById('onboarding-modal');
-  const onbOk = document.getElementById('onb-ok');
-
-  if (modal) {
-    modal.classList.remove('hidden');
-  }
-  onbOk?.addEventListener('click', () => {
-    modal?.classList.add('hidden');
+  // Tabs
+  document.querySelectorAll('.tab').forEach((btn) => {
+    btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
   });
-  modal?.querySelector('[data-onb-close]')?.addEventListener('click', () => {
+  document.querySelector('.icon-btn')?.addEventListener('click', () => switchTab('profile'));
+  switchTab('path');
+
+  // Effort ring value
+  document.querySelectorAll('.effort-ring').forEach((ring) => {
+    const val = Number(ring.getAttribute('data-effort') || 0);
+    ring.style.setProperty('--val', String(val));
+  });
+
+  // Focus card animation
+  const focusChk = document.getElementById('focus-done');
+  focusChk?.addEventListener('change', () => {
+    tg?.HapticFeedback?.notificationOccurred(focusChk.checked ? 'success' : 'warning');
+  });
+
+  // Evening check-in modal
+  const modal = document.getElementById('checkin-modal');
+  document.getElementById('open-checkin')?.addEventListener('click', () => {
+    modal?.classList.remove('hidden');
+  });
+  document.querySelectorAll('[data-close="checkin"]').forEach((el) => el.addEventListener('click', () => modal?.classList.add('hidden')));
+  document.getElementById('chk-save')?.addEventListener('click', () => {
     modal?.classList.add('hidden');
+    showToast('День сохранён');
+    tg?.HapticFeedback?.notificationOccurred('success');
   });
 
   // Grit-тест
