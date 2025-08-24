@@ -56,6 +56,66 @@ function showToast(message) {
   setTimeout(() => node.remove(), 2200);
 }
 
+// ---------- Plan rendering ----------
+function renderPlan(structured, planText) {
+  const s = structured || {};
+  const blocks = [
+    { title: 'Ежедневный ритуал', items: s.daily_ritual },
+    { title: 'Мини-план на день', items: s.mini_plan },
+    { title: 'Фокус-блоки', items: s.focus_blocks },
+    { title: 'Анти-срыв', items: s.anti_slip },
+    { title: 'Маркеры недели', items: s.weekly_markers },
+  ];
+  const hasAny = blocks.some(b => Array.isArray(b.items) && b.items.length);
+  if (!hasAny) {
+    return (planText || '').trim();
+  }
+  const wrap = document.createElement('div');
+  blocks.forEach(b => {
+    if (!Array.isArray(b.items) || b.items.length === 0) return;
+    const h = document.createElement('div'); h.style.fontWeight = '600'; h.style.margin = '8px 0 6px'; h.textContent = b.title; wrap.appendChild(h);
+    const ul = document.createElement('ul'); ul.style.margin = '0 0 8px 16px'; ul.style.padding = '0';
+    b.items.forEach(it => { const li = document.createElement('li'); li.style.margin = '4px 0'; li.textContent = it; ul.appendChild(li); });
+    wrap.appendChild(ul);
+  });
+  return wrap;
+}
+
+function parsePlanTextToStructured(planText) {
+  const text = (planText || '').replace(/\r/g, '');
+  function sliceBetween(startRe, endRe) {
+    const s = text.search(startRe); if (s < 0) return '';
+    const e = text.slice(s + 1).search(endRe); // +1 защищает от нулевого
+    if (e < 0) return text.slice(s);
+    return text.slice(s, s + 1 + e);
+  }
+  function listFromBlock(block) {
+    const items = [];
+    (block.match(/(^|\n)\s*(?:[-*•]|\d+[.)])\s+.+/g) || []).forEach(line => {
+      const clean = line.replace(/(^|\n)\s*(?:[-*•]|\d+[.)])\s+/g, '').trim();
+      if (clean) items.push(clean);
+    });
+    return items;
+  }
+  const map = [
+    { key: 'daily_ritual', re: /(Ежедневный ритуал)/i },
+    { key: 'mini_plan', re: /(Мини-план[^\n]*)/i },
+    { key: 'focus_blocks', re: /(Фокус-блок[^\n]*)/i },
+    { key: 'anti_slip', re: /(Анти-срыв)/i },
+    { key: 'weekly_markers', re: /(Маркеры прогресса|Маркеры недели)/i },
+  ];
+  const out = { daily_ritual: [], mini_plan: [], focus_blocks: [], anti_slip: [], weekly_markers: [] };
+  for (let i = 0; i < map.length; i++) {
+    const start = map[i].re;
+    const end = i < map.length - 1 ? map[i+1].re : /\Z/;
+    const block = sliceBetween(start, end);
+    if (block) {
+      out[map[i].key] = listFromBlock(block);
+    }
+  }
+  return out;
+}
+
 // State
 function todayKey() { return new Date().toISOString().slice(0,10); }
 function loadState() {
@@ -218,6 +278,8 @@ function onReady() {
   const genResult = document.getElementById('gen-result');
   genForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    genResult.classList.remove('hidden');
+    genResult.textContent = 'Генерирую…';
     const task = document.getElementById('gen-task').value.trim();
     const frequency = document.getElementById('gen-frequency').value;
     const time = Number(document.getElementById('gen-time').value || 0);
@@ -225,11 +287,21 @@ function onReady() {
     if (!task || time <= 0) return showToast('Заполните задачу и время');
     try {
       const data = await postJSON('/api/plan/generate', { init: getInitDataUnsafe(), task, frequency, time_minutes: time, constraints });
-      genResult.textContent = data?.plan_text || 'План готов.';
-      genResult.classList.remove('hidden');
+      const structured = data?.structured;
+      if (structured && (structured.daily_ritual?.length || structured.mini_plan?.length || structured.focus_blocks?.length || structured.anti_slip?.length || structured.weekly_markers?.length)) {
+        genResult.textContent = '';
+        const node = renderPlan(structured, data?.plan_text || '');
+        if (typeof node === 'string') { genResult.textContent = node; }
+        else { genResult.replaceChildren(node); }
+      } else {
+        const parsed = parsePlanTextToStructured(data?.plan_text || '');
+        const node = renderPlan(parsed, data?.plan_text || '');
+        if (typeof node === 'string') { genResult.textContent = node; }
+        else { genResult.replaceChildren(node); }
+      }
       tg?.HapticFeedback?.notificationOccurred('success');
     } catch (err) {
-      console.error(err); showToast('Ошибка генерации'); tg?.HapticFeedback?.notificationOccurred('error');
+      console.error(err); genResult.textContent = 'Ошибка генерации'; showToast('Ошибка генерации'); tg?.HapticFeedback?.notificationOccurred('error');
     }
   });
 
