@@ -42,8 +42,29 @@ function onReady() {
   const planForm = document.getElementById('plan-form');
   const factForm = document.getElementById('fact-form');
   const openBtn = document.getElementById('open-in-telegram');
+  const modal = document.getElementById('onboarding-modal');
+  const onbOk = document.getElementById('onb-ok');
+  const onbOpen = document.getElementById('onb-open');
 
   openBtn?.addEventListener('click', openInTelegram);
+
+  // Onboarding modal — показать один раз
+  const ONB_KEY = 'grit_onboarding_v1';
+  const shouldShowOnboarding = !localStorage.getItem(ONB_KEY);
+  if (shouldShowOnboarding && modal) {
+    modal.classList.remove('hidden');
+  }
+  onbOk?.addEventListener('click', () => {
+    localStorage.setItem(ONB_KEY, '1');
+    modal?.classList.add('hidden');
+  });
+  onbOpen?.addEventListener('click', () => {
+    openInTelegram();
+  });
+  modal?.querySelector('[data-onb-close]')?.addEventListener('click', () => {
+    localStorage.setItem(ONB_KEY, '1');
+    modal?.classList.add('hidden');
+  });
 
   planForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
