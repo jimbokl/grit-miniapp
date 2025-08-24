@@ -4,7 +4,6 @@ function applyTelegramTheme() {
   const p = tg?.themeParams || {};
   const root = document.documentElement;
   const set = (k, v) => v && root.style.setProperty(k, v);
-  // Map TG params to CSS vars (fallbacks remain from CSS file)
   set('--bg', p.bg_color);
   set('--text', p.text_color);
   set('--muted', p.hint_color);
@@ -17,7 +16,7 @@ function getApiBase() {
   const ls = (typeof localStorage !== 'undefined') ? localStorage.getItem('GRIT_API_BASE') : '';
   if (ls) return ls;
   if (window.location.hostname === 'jimbokl.github.io') return 'https://nflowsserver.com/grit';
-  return window.GRIT_API_BASE || 'http://localhost:8000';
+  return 'http://localhost:8000';
 }
 
 function showToast(message) {
@@ -28,39 +27,72 @@ function showToast(message) {
   setTimeout(() => node.remove(), 2200);
 }
 
-function getInitDataUnsafe() {
-  try {
-    return tg?.initDataUnsafe || {};
-  } catch (e) {
-    return {};
-  }
+// State
+function todayKey() { return new Date().toISOString().slice(0,10); }
+function loadState() {
+  try { return JSON.parse(localStorage.getItem('grit_state') || '{}'); } catch { return {}; }
+}
+function saveState(s) { localStorage.setItem('grit_state', JSON.stringify(s)); }
+
+function ensureDefaults(state) {
+  state.checkins = state.checkins || {}; // date -> {effort, win, challenge}
+  state.streak = state.streak || 0;
+  state.lastCheckin = state.lastCheckin || null;
+  state.goals = state.goals || { main: '100 видео за 100 дней', subs: [] };
+  return state;
 }
 
-async function postJSON(url, data) {
-  const base = getApiBase();
-  const full = base.replace(/\/$/, '') + url;
-  const resp = await fetch(full, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Telegram-Init-Data': tg?.initData || '',
-    },
-    body: JSON.stringify(data),
-    credentials: 'include',
-  });
-  if (!resp.ok) throw new Error(`Request failed: ${resp.status}`);
-  return resp.json().catch(() => ({}));
+function updateStreak(state) {
+  const last = state.lastCheckin; const today = todayKey();
+  if (!last) { state.streak = state.checkins[today] ? 1 : 0; return; }
+  const lastDate = new Date(last); const tDate = new Date(today);
+  const diff = Math.round((tDate - lastDate) / 86400000);
+  if (diff === 1 && state.checkins[today]) state.streak += 1;
+  else if (diff === 0) {/* same day, no change */}
+  else if (diff > 1 && state.checkins[today]) state.streak = 1; else if (diff > 1) state.streak = 0;
 }
 
-function switchTab(name) {
+function avgEffort7(state) {
+  const dates = Object.keys(state.checkins).sort().slice(-7);
+  if (!dates.length) return 0;
+  const sum = dates.reduce((a,d) => a + (Number(state.checkins[d]?.effort||0)), 0);
+  return Math.round((sum/dates.length) * 20); // 1..5 -> 20..100
+}
+
+// Tabs & swipe
+let currentTab = 'path';
+let touchStartX = null;
+const tabsOrder = ['path','goals','progress','gym','profile'];
+function switchTab(name, animateDir) {
+  if (name === currentTab) return;
+  const prev = document.querySelector(`[data-tab-section="${currentTab}"]`);
+  const next = document.querySelector(`[data-tab-section="${name}"]`);
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.getAttribute('data-tab') === name));
-  document.querySelectorAll('.tab-section').forEach((s) => s.classList.toggle('hidden', s.getAttribute('data-tab-section') !== name));
+  if (animateDir) {
+    prev?.classList.add(animateDir === 'left' ? 'slide-out-left' : 'slide-out-right');
+    next?.classList.add(animateDir === 'left' ? 'slide-in-right' : 'slide-in-left');
+    next?.classList.remove('hidden');
+    setTimeout(() => {
+      prev?.classList.add('hidden');
+      prev?.classList.remove('slide-out-left','slide-out-right');
+      next?.classList.remove('slide-in-left','slide-in-right');
+    }, 250);
+  } else {
+    document.querySelectorAll('.tab-section').forEach((s) => s.classList.toggle('hidden', s.getAttribute('data-tab-section') !== name));
+  }
+  currentTab = name;
 }
 
-function bindTabs() {
-  document.querySelectorAll('.tab')?.forEach((btn) => {
-    btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
-  });
+function bindSwipes() {
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', (e) => {
+    if (touchStartX == null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX; touchStartX = null;
+    if (Math.abs(dx) < 40) return;
+    const idx = tabsOrder.indexOf(currentTab);
+    if (dx < 0 && idx < tabsOrder.length-1) switchTab(tabsOrder[idx+1], 'left');
+    else if (dx > 0 && idx > 0) switchTab(tabsOrder[idx-1], 'right');
+  }, {passive:true});
 }
 
 function calcGritScore(form) {
@@ -72,36 +104,46 @@ function calcGritScore(form) {
 
 function onReady() {
   applyTelegramTheme?.();
-
-  // Tabs
-  document.querySelectorAll('.tab').forEach((btn) => {
-    btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
-  });
+  // Tabs click
+  document.querySelectorAll('.tab').forEach((btn) => btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab'))));
   document.querySelector('.icon-btn')?.addEventListener('click', () => switchTab('profile'));
   switchTab('path');
+  bindSwipes();
 
-  // Effort ring value
-  document.querySelectorAll('.effort-ring').forEach((ring) => {
-    const val = Number(ring.getAttribute('data-effort') || 0);
-    ring.style.setProperty('--val', String(val));
-  });
+  // State init
+  let state = ensureDefaults(loadState());
+  // Effort ring
+  const ring = document.querySelector('.effort-ring');
+  const pct = avgEffort7(state); ring?.style.setProperty('--val', String(pct));
+  // Streak
+  const sv = document.getElementById('streak-val'); if (sv) sv.textContent = String(state.streak || 0);
+  // Goals
+  const mainGoal = state.goals?.main; const gTitle = document.querySelector('[data-tab-section="goals"] .gl-title');
+  if (gTitle && mainGoal) gTitle.textContent = mainGoal;
 
-  // Focus card animation
+  // Focus
   const focusChk = document.getElementById('focus-done');
-  focusChk?.addEventListener('change', () => {
-    tg?.HapticFeedback?.notificationOccurred(focusChk.checked ? 'success' : 'warning');
-  });
+  focusChk?.addEventListener('change', () => tg?.HapticFeedback?.notificationOccurred(focusChk.checked ? 'success' : 'warning'));
 
-  // Evening check-in modal
+  // Check-in modal
   const modal = document.getElementById('checkin-modal');
-  document.getElementById('open-checkin')?.addEventListener('click', () => {
-    modal?.classList.remove('hidden');
-  });
+  const openBtn = document.getElementById('open-checkin');
+  openBtn?.addEventListener('click', () => modal?.classList.remove('hidden'));
   document.querySelectorAll('[data-close="checkin"]').forEach((el) => el.addEventListener('click', () => modal?.classList.add('hidden')));
   document.getElementById('chk-save')?.addEventListener('click', () => {
+    const effort = Number(document.getElementById('chk-effort')?.value || 0);
+    const win = document.getElementById('chk-win')?.value || '';
+    const challenge = document.getElementById('chk-challenge')?.value || '';
+    const key = todayKey();
+    state.checkins[key] = { effort, win, challenge };
+    state.lastCheckin = key;
+    updateStreak(state);
+    saveState(state);
+    // update UI
+    document.getElementById('streak-val').textContent = String(state.streak);
+    const pct2 = avgEffort7(state); ring?.style.setProperty('--val', String(pct2));
     modal?.classList.add('hidden');
-    showToast('День сохранён');
-    tg?.HapticFeedback?.notificationOccurred('success');
+    showToast('День сохранён'); tg?.HapticFeedback?.notificationOccurred('success');
   });
 
   // Grit-тест

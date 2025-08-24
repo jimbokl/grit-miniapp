@@ -88,3 +88,17 @@ textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--
 
 /* Responsive tweaks */
 @media (max-width:420px){ .container{padding:10px 10px 84px} .header{gap:8px} .exercise-list,.gl-list{gap:6px} }
+
+/* Slide transitions */
+.tab-section{will-change: transform}
+.slide-in-left{animation: slideInLeft .25s ease both}
+.slide-in-right{animation: slideInRight .25s ease both}
+.slide-out-left{animation: slideOutLeft .25s ease both}
+.slide-out-right{animation: slideOutRight .25s ease both}
+@keyframes slideInLeft{from{transform:translateX(-12%);opacity:.01}to{transform:translateX(0);opacity:1}}
+@keyframes slideInRight{from{transform:translateX(12%);opacity:.01}to{transform:translateX(0);opacity:1}}
+@keyframes slideOutLeft{from{transform:translateX(0);opacity:1}to{transform:translateX(-12%);opacity:.01}}
+@keyframes slideOutRight{from{transform:translateX(0);opacity:1}to{transform:translateX(12%);opacity:.01}}
+
+/* Toast (ensure visible above tabbar) */
+.toast{position:fixed;left:50%;bottom:72px;transform:translateX(-50%);background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:0 6px 30px rgba(0,0,0,.35);z-index:2000}
