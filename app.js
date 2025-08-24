@@ -64,23 +64,26 @@ let currentTab = 'path';
 let touchStartX = null;
 const tabsOrder = ['path','goals','progress','gym','profile'];
 function switchTab(name, animateDir) {
+  if (!name) return;
   if (name === currentTab) return;
   const prev = document.querySelector(`[data-tab-section="${currentTab}"]`);
   const next = document.querySelector(`[data-tab-section="${name}"]`);
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.getAttribute('data-tab') === name));
-  if (animateDir) {
-    prev?.classList.add(animateDir === 'left' ? 'slide-out-left' : 'slide-out-right');
-    next?.classList.add(animateDir === 'left' ? 'slide-in-right' : 'slide-in-left');
-    next?.classList.remove('hidden');
-    setTimeout(() => {
-      prev?.classList.add('hidden');
-      prev?.classList.remove('slide-out-left','slide-out-right');
-      next?.classList.remove('slide-in-left','slide-in-right');
-    }, 250);
-  } else {
-    document.querySelectorAll('.tab-section').forEach((s) => s.classList.toggle('hidden', s.getAttribute('data-tab-section') !== name));
+  if (prev && next) {
+    if (animateDir) {
+      prev.classList.add(animateDir === 'left' ? 'slide-out-left' : 'slide-out-right');
+      next.classList.add(animateDir === 'left' ? 'slide-in-right' : 'slide-in-left');
+      next.classList.remove('hidden');
+      setTimeout(() => {
+        prev.classList.add('hidden');
+        prev.classList.remove('slide-out-left','slide-out-right');
+        next.classList.remove('slide-in-left','slide-in-right');
+      }, 250);
+    } else {
+      document.querySelectorAll('.tab-section').forEach((s) => s.classList.toggle('hidden', s !== next));
+    }
+    currentTab = name;
   }
-  currentTab = name;
 }
 
 function bindSwipes() {
@@ -104,10 +107,22 @@ function calcGritScore(form) {
 
 function onReady() {
   applyTelegramTheme?.();
-  // Tabs click
-  document.querySelectorAll('.tab').forEach((btn) => btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab'))));
-  document.querySelector('.icon-btn')?.addEventListener('click', () => switchTab('profile'));
-  switchTab('path');
+  // Tabs click (delegation)
+  document.querySelector('.tabbar')?.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tab');
+    if (!btn) return;
+    e.preventDefault();
+    const target = btn.getAttribute('data-tab');
+    const idx = tabsOrder.indexOf(currentTab);
+    const targetIdx = tabsOrder.indexOf(target);
+    const dir = targetIdx > idx ? 'left' : targetIdx < idx ? 'right' : null;
+    switchTab(target, dir);
+  });
+  document.querySelector('.icon-btn')?.addEventListener('click', (e) => { e.preventDefault(); switchTab('profile'); });
+  // Init tab
+  currentTab = 'path';
+  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('on', t.getAttribute('data-tab') === 'path'));
+  document.querySelectorAll('.tab-section').forEach((s) => s.classList.toggle('hidden', s.getAttribute('data-tab-section') !== 'path'));
   bindSwipes();
 
   // State init
