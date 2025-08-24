@@ -15,15 +15,11 @@
         <div class="modal-card">
           <h2 id="onb-title">Как работать с Grit за день</h2>
           <ul class="onb-list">
-            <li><strong>Что такое Grit</strong>: настойчивость + страсть к долгосрочной цели; держим ритм даже когда сложно.</li>
-            <li><strong>4 компонента</strong>: Интерес → Практика → Цель → Надежда. Маленькие шаги, каждый день.</li>
-            <li><strong>Что такое «касания»</strong>: любые целевые контакты по продаже/продвижению (звонок, личка, письмо, встреча).</li>
-            <li><strong>Зачем этот бот</strong>: держать ритм. Утром — план, днём — факт, вечером — сверка. Так растёт выручка.</li>
-            <li><strong>Утро</strong>: внесите план — касания, демо, фокус (мин).</li>
-            <li><strong>Днём</strong>: отмечайте факты быстрыми инпутами ниже.</li>
-            <li><strong>Вечер</strong>: сверка обещано/сделано — цель: идеальный день.</li>
-            <li><strong>Серия</strong>: если тяжело — отметьте «минимум», цепочку не ломаем.</li>
+            <li><strong>Grit</strong>: держим ритм к долгосрочной цели.</li>
+            <li><strong>День</strong>: утро — план; днём — факты; вечер — сверка.</li>
+            <li><strong>Шаг</strong>: маленькая победа каждый день важнее идеала.</li>
           </ul>
+          <p class="onb-tip">Подсказка: сфокусируйтесь на одном важном действии сегодня.</p>
           <form id="onb-form" class="form-grid" autocomplete="off">
             <label class="full">
               <span>Главная задача (пример: «Видео каждый день»)</span>
@@ -61,41 +57,11 @@
       </header>
 
       <nav class="tabs" aria-label="Навигация">
-        <button class="tab active" data-tab="onboarding">Онбординг</button>
-        <button class="tab" data-tab="grit-test">Grit‑тест</button>
+        <button class="tab active" data-tab="grit-test">Grit‑тест</button>
         <button class="tab" data-tab="goals">Цели</button>
         <button class="tab" data-tab="day">День</button>
         <button class="tab" data-tab="stats">Статистика</button>
       </nav>
-
-      <section class="card" data-tab-section="onboarding">
-        <h2>Онбординг</h2>
-        <p class="subtitle">Опишите главную задачу и получите план удержания ритма.</p>
-        <form id="onb-form-inline" class="form-grid" autocomplete="off">
-          <label class="full">
-            <span>Главная задача</span>
-            <input id="onb-task-inline" type="text" placeholder="Напр.: Видео каждый день" />
-          </label>
-          <label>
-            <span>Частота</span>
-            <select id="onb-frequency-inline">
-              <option value="daily">Ежедневно</option>
-              <option value="weekdays">Пн–Пт</option>
-              <option value="custom">Выбор дней</option>
-            </select>
-          </label>
-          <label>
-            <span>Время (мин)</span>
-            <input id="onb-time-inline" type="number" min="5" step="5" placeholder="60" />
-          </label>
-          <label class="full">
-            <span>Ограничения</span>
-            <input id="onb-constraints-inline" type="text" placeholder="Телефон, вечерние слоты" />
-          </label>
-          <button type="submit" class="btn primary">Сгенерировать план</button>
-        </form>
-        <div id="onb-result-inline" class="onb-result hidden"></div>
-      </section>
 
       <section class="card hidden" data-tab-section="grit-test">
         <h2>Grit‑тест (краткий)</h2>

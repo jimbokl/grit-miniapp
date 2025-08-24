@@ -75,7 +75,7 @@ function calcGritScore(form) {
 function onReady() {
   applyTelegramTheme?.();
   bindTabs();
-  switchTab('onboarding');
+  switchTab('grit-test');
 
   const planForm = document.getElementById('plan-form');
   const factForm = document.getElementById('fact-form');
@@ -90,26 +90,6 @@ function onReady() {
   });
   modal?.querySelector('[data-onb-close]')?.addEventListener('click', () => {
     modal?.classList.add('hidden');
-  });
-
-  // Инлайн онбординг
-  const onbFormInline = document.getElementById('onb-form-inline');
-  const onbResultInline = document.getElementById('onb-result-inline');
-  onbFormInline?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const task = document.getElementById('onb-task-inline').value.trim();
-    const frequency = document.getElementById('onb-frequency-inline').value;
-    const time = Number(document.getElementById('onb-time-inline').value || 0);
-    const constraints = document.getElementById('onb-constraints-inline').value.trim();
-    if (!task || time <= 0) return showToast('Заполните задачу и время');
-    try {
-      const data = await postJSON('/api/plan/generate', { init: getInitDataUnsafe(), task, frequency, time_minutes: time, constraints });
-      onbResultInline.textContent = data?.plan_text || 'План готов.';
-      onbResultInline.classList.remove('hidden');
-      tg?.HapticFeedback?.notificationOccurred('success');
-    } catch (err) {
-      console.error(err); showToast('Ошибка генерации'); tg?.HapticFeedback?.notificationOccurred('error');
-    }
   });
 
   // Grit-тест
