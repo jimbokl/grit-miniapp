@@ -1,5 +1,18 @@
 const tg = window.Telegram?.WebApp;
 
+function applyTelegramTheme() {
+  const p = tg?.themeParams || {};
+  const root = document.documentElement;
+  const set = (k, v) => v && root.style.setProperty(k, v);
+  // Map TG params to CSS vars (fallbacks remain from CSS file)
+  set('--bg', p.bg_color);
+  set('--text', p.text_color);
+  set('--muted', p.hint_color);
+  set('--card', p.secondary_bg_color);
+  set('--border', p.section_separator_color);
+  set('--primary', p.button_color);
+}
+
 function getApiBase() {
   const ls = (typeof localStorage !== 'undefined') ? localStorage.getItem('GRIT_API_BASE') : '';
   return ls || window.GRIT_API_BASE || 'http://localhost:8000';
@@ -38,6 +51,7 @@ async function postJSON(url, data) {
 }
 
 function onReady() {
+  applyTelegramTheme();
   const planForm = document.getElementById('plan-form');
   const factForm = document.getElementById('fact-form');
   const modal = document.getElementById('onboarding-modal');
