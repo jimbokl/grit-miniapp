@@ -55,6 +55,8 @@ input[type="number"], input[type="text"], select {
 input::placeholder { color: #5f6780; }
 select { appearance: none; }
 
+.hint { display:block; margin-top:-6px; margin-bottom:6px; color: var(--muted); font-size: 12px; }
+
 .btn {
   appearance: none; border: 0; cursor: pointer;
   padding: 10px 14px; border-radius: 10px; font-weight: 600;

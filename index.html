@@ -103,15 +103,18 @@
         <h2>День</h2>
         <form id="plan-form" class="form-grid" autocomplete="off">
           <label>
-            <span>Касания (шт)</span>
+            <span>Действия (шт)</span>
+            <small class="hint">любые шаги к главной цели</small>
             <input id="plan-touches" type="number" min="0" inputmode="numeric" placeholder="например, 20" />
           </label>
           <label>
-            <span>Демо (шт)</span>
+            <span>Сессии (шт)</span>
+            <small class="hint">встречи/презентации/практики</small>
             <input id="plan-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
           </label>
           <label class="full">
-            <span>Фокус (мин)</span>
+            <span>Глубокая работа (мин)</span>
+            <small class="hint">сконцентрированное время без отвлечений</small>
             <input id="plan-focus" type="number" min="0" inputmode="numeric" placeholder="например, 90" />
           </label>
           <button type="submit" class="btn primary">Отправить план</button>
@@ -119,15 +122,18 @@
 
         <form id="fact-form" class="form-grid" autocomplete="off">
           <label>
-            <span>Касания +</span>
+            <span>Действия +</span>
+            <small class="hint">фиксируем сделанные шаги</small>
             <input id="fact-touches" type="number" min="0" inputmode="numeric" placeholder="например, 5" />
           </label>
           <label>
-            <span>Демо +</span>
+            <span>Сессии +</span>
+            <small class="hint">встречи/презентации/практики</small>
             <input id="fact-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
           </label>
           <label class="full">
-            <span>Фокус + (мин)</span>
+            <span>Глубокая работа + (мин)</span>
+            <small class="hint">добавьте минуты фокуса</small>
             <input id="fact-focus" type="number" min="0" inputmode="numeric" placeholder="например, 30" />
           </label>
           <button type="submit" class="btn success">Добавить факт</button>
