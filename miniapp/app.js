@@ -43,18 +43,14 @@ function onReady() {
   const modal = document.getElementById('onboarding-modal');
   const onbOk = document.getElementById('onb-ok');
   
-  // Onboarding modal — показать один раз
-  const ONB_KEY = 'grit_onboarding_v1';
-  const shouldShowOnboarding = !localStorage.getItem(ONB_KEY);
-  if (shouldShowOnboarding && modal) {
+  // Onboarding modal — показывать при каждом запуске
+  if (modal) {
     modal.classList.remove('hidden');
   }
   onbOk?.addEventListener('click', () => {
-    localStorage.setItem(ONB_KEY, '1');
     modal?.classList.add('hidden');
   });
   modal?.querySelector('[data-onb-close]')?.addEventListener('click', () => {
-    localStorage.setItem(ONB_KEY, '1');
     modal?.classList.add('hidden');
   });
 
