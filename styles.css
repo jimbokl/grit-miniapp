@@ -95,3 +95,21 @@ select { appearance: none; }
 .tab { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; }
 .tab.active { background: var(--card); border-color: var(--primary); }
 .hidden { display: none; }
+
+/* Compact onboarding modal overrides */
+.modal-card { margin: 6vh auto; padding: 12px; max-height: 80vh; overflow: auto; }
+.modal-card h2 { font-size: 16px; }
+.onb-list { margin: 6px 0 8px; padding-left: 16px; color: var(--muted); font-size: 13px; }
+.onb-list li { margin: 4px 0; }
+.onb-actions { display: flex; gap: 8px; position: sticky; bottom: 0; padding-top: 8px; background: var(--card); }
+
+@media (max-width: 420px) {
+  .container { padding: 16px 12px 28px; }
+  .card { padding: 12px; }
+  .form-grid { gap: 10px; }
+  .modal-card { margin: 4vh auto; padding: 10px; max-height: 86vh; }
+  .modal-card h2 { font-size: 15px; }
+  label { font-size: 13px; }
+  input[type="number"], input[type="text"], select { padding: 9px 10px; }
+  .btn { padding: 9px 12px; }
+}
