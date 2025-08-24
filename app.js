@@ -15,8 +15,37 @@ function applyTelegramTheme() {
 function getApiBase() {
   const ls = (typeof localStorage !== 'undefined') ? localStorage.getItem('GRIT_API_BASE') : '';
   if (ls) return ls;
-  if (window.location.hostname === 'jimbokl.github.io') return 'https://nflowsserver.com/grit';
+  if (window.location.hostname === 'jimbokl.github.io') return 'https://212-34-150-91.sslip.io/grit';
   return 'http://localhost:8000';
+}
+
+function getInitDataUnsafe() {
+  try { return tg?.initDataUnsafe || {}; } catch { return {}; }
+}
+
+async function postJSON(path, body, options = {}) {
+  const base = getApiBase();
+  const url = path.startsWith('http') ? path : base.replace(/\/$/, '') + '/' + path.replace(/^\//, '');
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), options.timeoutMs || 20000);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(options.headers||{}) },
+      body: JSON.stringify(body || {}),
+      credentials: 'include',
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    if (!res.ok) {
+      const txt = await res.text().catch(()=>'');
+      throw new Error(`HTTP ${res.status}: ${txt}`);
+    }
+    return await res.json();
+  } catch (e) {
+    clearTimeout(timeout);
+    throw e;
+  }
 }
 
 function showToast(message) {
@@ -205,6 +234,8 @@ function onReady() {
   });
 
   // Оставшиеся обработчики (план/факт)
+  const planForm = document.getElementById('plan-form');
+  const factForm = document.getElementById('fact-form');
   planForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const plan = {
