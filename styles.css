@@ -70,4 +70,21 @@ input[type="number"]::placeholder { color: #5f6780; }
   box-shadow: 0 6px 30px rgba(0,0,0,0.35);
 }
 
+/* Onboarding modal */
+.modal.hidden { display: none; }
+.modal { position: fixed; inset: 0; z-index: 1000; }
+.modal-backdrop {
+  position: absolute; inset: 0; background: rgba(0,0,0,0.55);
+}
+.modal-card {
+  position: relative;
+  max-width: 720px; margin: 10vh auto; padding: 16px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+}
+.modal-card h2 { margin: 0 0 8px; font-size: 18px; }
+.onb-list { margin: 8px 0 12px; padding-left: 18px; color: var(--muted); }
+.onb-list li { margin: 6px 0; }
+.onb-actions { display: flex; gap: 8px; }
+.onb-tip { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
+
 
