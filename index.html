@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grit — Mini App</title>
+    <link rel="preconnect" href="https://telegram.org" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  </head>
+  <body>
+    <main class="container" id="app-root">
+      <header class="header">
+        <h1>Grit — план и факт</h1>
+        <p class="subtitle">Ежедневные метрики: касания, демо, фокус</p>
+      </header>
+
+      <section class="card">
+        <h2>План на сегодня</h2>
+        <form id="plan-form" class="form-grid" autocomplete="off">
+          <label>
+            <span>Касания (шт)</span>
+            <input id="plan-touches" type="number" min="0" inputmode="numeric" placeholder="например, 20" />
+          </label>
+          <label>
+            <span>Демо (шт)</span>
+            <input id="plan-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
+          </label>
+          <label class="full">
+            <span>Фокус (мин)</span>
+            <input id="plan-focus" type="number" min="0" inputmode="numeric" placeholder="например, 90" />
+          </label>
+          <button type="submit" class="btn primary">Отправить план</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Факт — быстрые отметки</h2>
+        <form id="fact-form" class="form-grid" autocomplete="off">
+          <label>
+            <span>Касания +</span>
+            <input id="fact-touches" type="number" min="0" inputmode="numeric" placeholder="например, 5" />
+          </label>
+          <label>
+            <span>Демо +</span>
+            <input id="fact-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
+          </label>
+          <label class="full">
+            <span>Фокус + (мин)</span>
+            <input id="fact-focus" type="number" min="0" inputmode="numeric" placeholder="например, 30" />
+          </label>
+          <button type="submit" class="btn success">Добавить факт</button>
+        </form>
+      </section>
+
+      <footer class="footer">
+        <button id="open-in-telegram" class="btn ghost">Открыть в Telegram</button>
+      </footer>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+  </html>
+
+
