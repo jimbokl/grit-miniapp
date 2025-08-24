@@ -56,12 +56,84 @@
       </div>
 
       <header class="header">
-        <h1>Grit — план и факт</h1>
-        <p class="subtitle">Ежедневные метрики: касания, демо, фокус</p>
+        <h1>Grit-тренер</h1>
+        <p class="subtitle">Персональный коуч по настойчивости: цель → ритуал → фокус → прогресс</p>
       </header>
 
-      <section class="card">
-        <h2>План на сегодня</h2>
+      <nav class="tabs" aria-label="Навигация">
+        <button class="tab active" data-tab="onboarding">Онбординг</button>
+        <button class="tab" data-tab="grit-test">Grit‑тест</button>
+        <button class="tab" data-tab="goals">Цели</button>
+        <button class="tab" data-tab="day">День</button>
+        <button class="tab" data-tab="stats">Статистика</button>
+      </nav>
+
+      <section class="card" data-tab-section="onboarding">
+        <h2>Онбординг</h2>
+        <p class="subtitle">Опишите главную задачу и получите план удержания ритма.</p>
+        <form id="onb-form-inline" class="form-grid" autocomplete="off">
+          <label class="full">
+            <span>Главная задача</span>
+            <input id="onb-task-inline" type="text" placeholder="Напр.: Видео каждый день" />
+          </label>
+          <label>
+            <span>Частота</span>
+            <select id="onb-frequency-inline">
+              <option value="daily">Ежедневно</option>
+              <option value="weekdays">Пн–Пт</option>
+              <option value="custom">Выбор дней</option>
+            </select>
+          </label>
+          <label>
+            <span>Время (мин)</span>
+            <input id="onb-time-inline" type="number" min="5" step="5" placeholder="60" />
+          </label>
+          <label class="full">
+            <span>Ограничения</span>
+            <input id="onb-constraints-inline" type="text" placeholder="Телефон, вечерние слоты" />
+          </label>
+          <button type="submit" class="btn primary">Сгенерировать план</button>
+        </form>
+        <div id="onb-result-inline" class="onb-result hidden"></div>
+      </section>
+
+      <section class="card hidden" data-tab-section="grit-test">
+        <h2>Grit‑тест (краткий)</h2>
+        <p class="subtitle">Оцените настойчивость по шкале 1–5 (1 — редко, 5 — всегда)</p>
+        <form id="grit-form" class="form-grid">
+          <label class="full"><span>Я заканчиваю всё, что начинаю</span>
+            <select name="q1"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option></select>
+          </label>
+          <label class="full"><span>Неудачи не выбивают меня из колеи</span>
+            <select name="q2"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
+          </label>
+          <label class="full"><span>Я работаю усердно каждый день</span>
+            <select name="q3"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option></select>
+          </label>
+          <label class="full"><span>Я долго держу интерес к одной большой цели</span>
+            <select name="q4"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select>
+          </label>
+          <button class="btn primary" type="submit">Посчитать</button>
+        </form>
+        <div id="grit-result" class="onb-result hidden"></div>
+      </section>
+
+      <section class="card hidden" data-tab-section="goals">
+        <h2>Цели</h2>
+        <form id="goals-form" class="form-grid">
+          <label class="full"><span>Главная цель</span>
+            <input id="goal-main" type="text" placeholder="Напр.: 100 видео за 100 дней" />
+          </label>
+          <label class="full"><span>Подцели (через запятую)</span>
+            <input id="goal-sub" type="text" placeholder="Напр.: сценарии, монтаж, публикация" />
+          </label>
+          <button class="btn primary" type="submit">Сохранить цели</button>
+        </form>
+        <div id="goals-saved" class="onb-result hidden"></div>
+      </section>
+
+      <section class="card hidden" data-tab-section="day">
+        <h2>День</h2>
         <form id="plan-form" class="form-grid" autocomplete="off">
           <label>
             <span>Касания (шт)</span>
@@ -77,10 +149,7 @@
           </label>
           <button type="submit" class="btn primary">Отправить план</button>
         </form>
-      </section>
 
-      <section class="card">
-        <h2>Факт — быстрые отметки</h2>
         <form id="fact-form" class="form-grid" autocomplete="off">
           <label>
             <span>Касания +</span>
@@ -96,6 +165,12 @@
           </label>
           <button type="submit" class="btn success">Добавить факт</button>
         </form>
+      </section>
+
+      <section class="card hidden" data-tab-section="stats">
+        <h2>Статистика</h2>
+        <p class="subtitle">Здесь будет прогресс по идеальным дням и метрикам (MVP).</p>
+        <div id="stats-box" class="onb-result">Пока пусто. Заполните «День» и вернитесь позже.</div>
       </section>
     </main>
 

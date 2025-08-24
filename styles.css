@@ -90,3 +90,8 @@ select { appearance: none; }
 .onb-tip { margin: 8px 0 0; color: var(--muted); font-size: 13px; }
 .onb-result { margin-top: 12px; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: #101521; white-space: pre-wrap; }
 .onb-result.hidden { display: none; }
+
+.tabs { display: flex; gap: 8px; margin: 8px 0 12px; }
+.tab { padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text); cursor: pointer; }
+.tab.active { background: var(--card); border-color: var(--primary); }
+.hidden { display: none; }

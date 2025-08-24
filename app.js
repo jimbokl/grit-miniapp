@@ -50,14 +50,38 @@ async function postJSON(url, data) {
   return resp.json().catch(() => ({}));
 }
 
+function switchTab(name) {
+  document.querySelectorAll('[data-tab-section]')?.forEach((el) => {
+    el.classList.toggle('hidden', el.getAttribute('data-tab-section') !== name);
+  });
+  document.querySelectorAll('.tab')?.forEach((btn) => {
+    btn.classList.toggle('active', btn.getAttribute('data-tab') === name);
+  });
+}
+
+function bindTabs() {
+  document.querySelectorAll('.tab')?.forEach((btn) => {
+    btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
+  });
+}
+
+function calcGritScore(form) {
+  const values = Array.from(form.querySelectorAll('select')).map((s) => Number(s.value || 0));
+  if (!values.length) return 0;
+  const sum = values.reduce((a, b) => a + b, 0);
+  return (sum / values.length).toFixed(1);
+}
+
 function onReady() {
-  applyTelegramTheme();
+  applyTelegramTheme?.();
+  bindTabs();
+  switchTab('onboarding');
+
   const planForm = document.getElementById('plan-form');
   const factForm = document.getElementById('fact-form');
   const modal = document.getElementById('onboarding-modal');
   const onbOk = document.getElementById('onb-ok');
-  
-  // Onboarding modal — показывать при каждом запуске
+
   if (modal) {
     modal.classList.remove('hidden');
   }
@@ -68,40 +92,50 @@ function onReady() {
     modal?.classList.add('hidden');
   });
 
-  // Генерация плана через онбординг
-  const onbForm = document.getElementById('onb-form');
-  const onbResult = document.getElementById('onb-result');
-  onbForm?.addEventListener('submit', async (e) => {
+  // Инлайн онбординг
+  const onbFormInline = document.getElementById('onb-form-inline');
+  const onbResultInline = document.getElementById('onb-result-inline');
+  onbFormInline?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const task = document.getElementById('onb-task').value.trim();
-    const frequency = document.getElementById('onb-frequency').value;
-    const time = Number(document.getElementById('onb-time').value || 0);
-    const constraints = document.getElementById('onb-constraints').value.trim();
-    if (!task || time <= 0) {
-      showToast('Заполните задачу и время в день');
-      return;
-    }
+    const task = document.getElementById('onb-task-inline').value.trim();
+    const frequency = document.getElementById('onb-frequency-inline').value;
+    const time = Number(document.getElementById('onb-time-inline').value || 0);
+    const constraints = document.getElementById('onb-constraints-inline').value.trim();
+    if (!task || time <= 0) return showToast('Заполните задачу и время');
     try {
-      const data = await postJSON('/api/plan/generate', {
-        init: getInitDataUnsafe(),
-        task,
-        frequency,
-        time_minutes: time,
-        constraints,
-      });
-      const text = data?.plan_text || 'План сгенерирован.';
-      if (onbResult) {
-        onbResult.textContent = text;
-        onbResult.classList.remove('hidden');
-      }
+      const data = await postJSON('/api/plan/generate', { init: getInitDataUnsafe(), task, frequency, time_minutes: time, constraints });
+      onbResultInline.textContent = data?.plan_text || 'План готов.';
+      onbResultInline.classList.remove('hidden');
       tg?.HapticFeedback?.notificationOccurred('success');
     } catch (err) {
-      console.error(err);
-      showToast('Ошибка генерации плана');
-      tg?.HapticFeedback?.notificationOccurred('error');
+      console.error(err); showToast('Ошибка генерации'); tg?.HapticFeedback?.notificationOccurred('error');
     }
   });
 
+  // Grit-тест
+  const gritForm = document.getElementById('grit-form');
+  const gritResult = document.getElementById('grit-result');
+  gritForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const score = calcGritScore(gritForm);
+    gritResult.textContent = `Ваш Grit: ${score} / 5.0`;
+    gritResult.classList.remove('hidden');
+  });
+
+  // Цели
+  const goalsForm = document.getElementById('goals-form');
+  const goalsSaved = document.getElementById('goals-saved');
+  goalsForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const main = document.getElementById('goal-main').value.trim();
+    const subs = document.getElementById('goal-sub').value.trim();
+    localStorage.setItem('grit_goal_main', main);
+    localStorage.setItem('grit_goal_sub', subs);
+    goalsSaved.textContent = `Сохранено. Главная цель: ${main}. Подцели: ${subs}`;
+    goalsSaved.classList.remove('hidden');
+  });
+
+  // Оставшиеся обработчики (план/факт)
   planForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const plan = {
