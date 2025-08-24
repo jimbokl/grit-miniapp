@@ -13,11 +13,11 @@
       <!-- Header -->
       <header class="header">
         <div class="hdr-left">
-          <div class="avatar" aria-label="Аватар">DG</div>
+          <div class="avatar" id="avatar-initials" aria-label="Аватар">?</div>
         </div>
         <div class="hdr-center">
-          <div class="level-text"><span class="lvl">LVL 8:</span> <strong>Упорный Скалолаз</strong></div>
-          <div class="lvl-bar"><div class="lvl-bar__fill" style="width: 45%"></div></div>
+          <div class="level-text"><span class="lvl">LVL <span id="lvl-num">1</span>:</span> <strong id="lvl-title">Новичок</strong></div>
+          <div class="lvl-bar"><div class="lvl-bar__fill" id="lvl-fill" style="width: 0%"></div></div>
         </div>
         <div class="hdr-right">
           <button class="icon-btn" data-tab="profile" aria-label="Настройки">⚙️</button>
@@ -31,7 +31,7 @@
           <label class="focus-check">
             <input type="checkbox" id="focus-done" />
             <span class="focus-circle"></span>
-            <span class="focus-text">Фокус дня: Завершить сценарий видео</span>
+            <span class="focus-text">Фокус дня: <span id="focus-text">—</span></span>
           </label>
           <div class="focus-done-banner">Отличная работа!</div>
         </div>
@@ -45,23 +45,14 @@
           <div class="widget effort">
             <div class="w-title">Усилия за неделю</div>
             <div class="effort-ring" data-effort="85">
-              <div class="effort-ring__inner">85%</div>
+              <div class="effort-ring__inner" id="effort-pct">0%</div>
             </div>
           </div>
         </div>
 
         <div class="card goals-compact">
           <div class="card-title">Актуальные цели</div>
-          <ul class="gl-list">
-            <li>
-              <div class="gl-title">Опубликовать 5 видео</div>
-              <div class="gl-bar"><div class="gl-fill" style="width: 40%"></div></div>
-            </li>
-            <li>
-              <div class="gl-title">Подготовить презентацию</div>
-              <div class="gl-bar"><div class="gl-fill" style="width: 70%"></div></div>
-            </li>
-          </ul>
+          <ul class="gl-list" id="active-goals"></ul>
         </div>
 
         <button id="open-checkin" class="btn primary large">Подвести итоги дня</button>
@@ -175,9 +166,9 @@
           </div>
           <div class="heatmap-placeholder">Тепловая карта активности</div>
           <div class="kpi-grid">
-            <div class="kpi"><div class="kpi-val">21</div><div class="kpi-label">Макс. стрик</div></div>
-            <div class="kpi"><div class="kpi-val">58</div><div class="kpi-label">Задач выполнено</div></div>
-            <div class="kpi"><div class="kpi-val">4.2</div><div class="kpi-label">Средний балл усилий</div></div>
+            <div class="kpi"><div class="kpi-val" id="kpi-max-streak">0</div><div class="kpi-label">Макс. стрик</div></div>
+            <div class="kpi"><div class="kpi-val" id="kpi-total-checkins">0</div><div class="kpi-label">Дней сохранено</div></div>
+            <div class="kpi"><div class="kpi-val" id="kpi-avg-effort">0.0</div><div class="kpi-label">Средний балл усилий</div></div>
           </div>
         </div>
       </section>
@@ -248,8 +239,8 @@
         <h2 class="sr-only">Профиль</h2>
         <div class="card">
           <div class="card-title">Профиль</div>
-          <p>Имя: Дмитрий</p>
-          <p>Часовой пояс: Europe/Moscow</p>
+          <p>Имя: <span id="profile-name">—</span></p>
+          <p>Часовой пояс: <span id="profile-tz">—</span></p>
         </div>
       </section>
 

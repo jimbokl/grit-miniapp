@@ -148,6 +148,46 @@ function avgEffort7(state) {
   return Math.round((sum/dates.length) * 20); // 1..5 -> 20..100
 }
 
+// UI helpers to replace mocks
+function initHeaderFromState(state) {
+  const name = (localStorage.getItem('profile_name') || tg?.initDataUnsafe?.user?.first_name || '').trim();
+  const initials = name ? name[0].toUpperCase() : '•';
+  const avatar = document.getElementById('avatar-initials'); if (avatar) avatar.textContent = initials;
+  const lvl = Math.max(1, Math.floor((state.streak||0)/7) + 1);
+  const lvlNum = document.getElementById('lvl-num'); if (lvlNum) lvlNum.textContent = String(lvl);
+  const lvlTitle = document.getElementById('lvl-title'); if (lvlTitle) lvlTitle.textContent = lvl < 5 ? 'Новичок' : (lvl < 10 ? 'Упорный' : 'Мастер');
+  const lvlFill = document.getElementById('lvl-fill'); if (lvlFill) lvlFill.style.width = `${Math.min(100, ((state.streak%7)/7)*100)}%`;
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const pName = document.getElementById('profile-name'); if (pName) pName.textContent = name || '—';
+  const pTz = document.getElementById('profile-tz'); if (pTz) pTz.textContent = tz || '—';
+}
+
+function refreshGoalsUI(state) {
+  const active = document.getElementById('active-goals'); if (active) { active.innerHTML = ''; }
+  const main = localStorage.getItem('grit_goal_main') || state.goals?.main || '';
+  const subsRaw = localStorage.getItem('grit_goal_sub') || '';
+  const subs = subsRaw ? subsRaw.split(',').map(s => s.trim()).filter(Boolean) : (state.goals?.subs || []);
+  if (active) {
+    if (main) {
+      const li = document.createElement('li'); li.innerHTML = `<div class="gl-title">${main}</div><div class="gl-bar"><div class="gl-fill" style="width: 30%"></div></div>`; active.appendChild(li);
+    }
+    subs.slice(0,2).forEach((s, i) => { const li = document.createElement('li'); li.innerHTML = `<div class="gl-title">${s}</div><div class="gl-bar"><div class="gl-fill" style="width: ${i?70:40}%"></div></div>`; active.appendChild(li); });
+  }
+  const gTitle = document.querySelector('[data-tab-section="goals"] .gl-title'); if (gTitle && main) gTitle.textContent = main;
+}
+
+function refreshEffortUI(state) {
+  const dates = Object.keys(state.checkins).sort();
+  const last7 = dates.slice(-7);
+  const avgRaw = last7.length ? last7.reduce((a,d) => a + Number(state.checkins[d]?.effort||0), 0) / last7.length : 0;
+  const pct = Math.round(avgRaw * 20);
+  const pctNode = document.getElementById('effort-pct'); if (pctNode) pctNode.textContent = `${isFinite(pct)?pct:0}%`;
+  const ring = document.querySelector('.effort-ring'); ring?.style.setProperty('--val', String(isFinite(pct)?pct:0));
+  const kMax = document.getElementById('kpi-max-streak'); if (kMax) kMax.textContent = String(state.streak||0);
+  const kTotal = document.getElementById('kpi-total-checkins'); if (kTotal) kTotal.textContent = String(dates.length);
+  const kAvg = document.getElementById('kpi-avg-effort'); if (kAvg) kAvg.textContent = (avgRaw || 0).toFixed(1);
+}
+
 // Tabs & swipe
 let currentTab = 'path';
 let touchStartX = null;
@@ -216,18 +256,16 @@ function onReady() {
 
   // State init
   let state = ensureDefaults(loadState());
-  // Effort ring
-  const ring = document.querySelector('.effort-ring');
-  const pct = avgEffort7(state); ring?.style.setProperty('--val', String(pct));
+  // Header/profile
+  initHeaderFromState(state);
+  // Effort & KPI
+  refreshEffortUI(state);
   // Streak
   const sv = document.getElementById('streak-val'); if (sv) sv.textContent = String(state.streak || 0);
   // Goals
-  const mainGoal = state.goals?.main; const gTitle = document.querySelector('[data-tab-section="goals"] .gl-title');
-  if (gTitle && mainGoal) gTitle.textContent = mainGoal;
-
-  // Focus
-  const focusChk = document.getElementById('focus-done');
-  focusChk?.addEventListener('change', () => tg?.HapticFeedback?.notificationOccurred(focusChk.checked ? 'success' : 'warning'));
+  refreshGoalsUI(state);
+  // Focus text from last generated plan
+  const focus = document.getElementById('focus-text'); if (focus) focus.textContent = state.lastGeneratedPlan?.mini_plan?.[0] || '—';
 
   // Check-in modal
   const modal = document.getElementById('checkin-modal');
@@ -244,8 +282,8 @@ function onReady() {
     updateStreak(state);
     saveState(state);
     // update UI
-    document.getElementById('streak-val').textContent = String(state.streak);
-    const pct2 = avgEffort7(state); ring?.style.setProperty('--val', String(pct2));
+    const sv2 = document.getElementById('streak-val'); if (sv2) sv2.textContent = String(state.streak);
+    refreshEffortUI(state);
     modal?.classList.add('hidden');
     showToast('День сохранён'); tg?.HapticFeedback?.notificationOccurred('success');
   });
@@ -271,6 +309,7 @@ function onReady() {
     localStorage.setItem('grit_goal_sub', subs);
     goalsSaved.textContent = `Сохранено. Главная цель: ${main}. Подцели: ${subs}`;
     goalsSaved.classList.remove('hidden');
+    refreshGoalsUI(ensureDefaults(loadState()));
   });
 
   // Генерация плана (в разделе Цели)
@@ -316,50 +355,11 @@ function onReady() {
       saveState(s);
       // fill UI
       fillPlanStructure(structured);
+      const focusNode = document.getElementById('focus-text'); if (focusNode) focusNode.textContent = structured?.mini_plan?.[0] || '—';
       genResult.textContent = 'План сохранён и разложен по структуре ниже';
       tg?.HapticFeedback?.notificationOccurred('success');
     } catch (err) {
       console.error(err); genResult.textContent = 'Ошибка генерации'; showToast('Ошибка генерации'); tg?.HapticFeedback?.notificationOccurred('error');
-    }
-  });
-
-  // Оставшиеся обработчики (план/факт)
-  const planForm = document.getElementById('plan-form');
-  const factForm = document.getElementById('fact-form');
-  planForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const plan = {
-      touches: Number(document.getElementById('plan-touches').value || 0),
-      demos: Number(document.getElementById('plan-demos').value || 0),
-      focus_minutes: Number(document.getElementById('plan-focus').value || 0),
-    };
-    try {
-      await postJSON('/api/plan/today', { plan, init: getInitDataUnsafe() });
-      showToast('План сохранён');
-      tg?.HapticFeedback?.notificationOccurred('success');
-    } catch (err) {
-      console.error(err);
-      showToast('Ошибка: не удалось сохранить план');
-      tg?.HapticFeedback?.notificationOccurred('error');
-    }
-  });
-
-  factForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const inc = {
-      touches: Number(document.getElementById('fact-touches').value || 0),
-      demos: Number(document.getElementById('fact-demos').value || 0),
-      focus_minutes: Number(document.getElementById('fact-focus').value || 0),
-    };
-    try {
-      await postJSON('/api/fact/increment', { inc, init: getInitDataUnsafe() });
-      showToast('Факт добавлен');
-      tg?.HapticFeedback?.notificationOccurred('success');
-      factForm.reset();
-    } catch (err) {
-      console.error(err);
-      showToast('Ошибка: не удалось добавить факт');
-      tg?.HapticFeedback?.notificationOccurred('error');
     }
   });
 
