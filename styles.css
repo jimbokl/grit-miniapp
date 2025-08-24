@@ -102,3 +102,13 @@ textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--
 
 /* Toast (ensure visible above tabbar) */
 .toast{position:fixed;left:50%;bottom:72px;transform:translateX(-50%);background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 14px;box-shadow:0 6px 30px rgba(0,0,0,.35);z-index:2000}
+
+/* Forms */
+form{display:flex;flex-direction:column;gap:16px}
+label.full{display:flex;flex-direction:column;gap:8px}
+label.full span{font-weight:500;color:var(--text)}
+input,select,textarea{padding:12px;border:1px solid var(--border,#333);border-radius:8px;background:var(--card,#1c1c1e);color:var(--text);font-size:16px;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--primary,#007aff)}
+textarea{resize:vertical;min-height:80px}
+.result{padding:12px;background:var(--card,#1c1c1e);border-radius:8px;border-left:3px solid var(--primary,#007aff);font-size:14px;line-height:1.4;white-space:pre-wrap}
+.result.hidden{display:none}

@@ -91,6 +91,53 @@
             </details>
           </div>
         </div>
+
+        <!-- Управление целями -->
+        <div class="card">
+          <div class="card-title">Управление целями</div>
+          <form id="goals-form">
+            <label class="full">
+              <span>Главная цель</span>
+              <input id="goal-main" type="text" placeholder="Например: 100 видео за 100 дней" />
+            </label>
+            <label class="full">
+              <span>Подцели (через запятую)</span>
+              <textarea id="goal-sub" rows="3" placeholder="Например: Сценарии, Монтаж, Продвижение"></textarea>
+            </label>
+            <button type="submit" class="btn primary">Сохранить цели</button>
+          </form>
+          <div id="goals-saved" class="result hidden"></div>
+        </div>
+
+        <!-- Генерация плана -->
+        <div class="card">
+          <div class="card-title">Генератор плана</div>
+          <form id="gen-form">
+            <label class="full">
+              <span>Задача</span>
+              <input id="gen-task" type="text" placeholder="Например: Создавать видео каждый день" required />
+            </label>
+            <label class="full">
+              <span>Частота</span>
+              <select id="gen-frequency" required>
+                <option value="">Выберите частоту</option>
+                <option value="daily">Ежедневно</option>
+                <option value="weekly">Еженедельно</option>
+                <option value="monthly">Ежемесячно</option>
+              </select>
+            </label>
+            <label class="full">
+              <span>Время (минут в день)</span>
+              <input id="gen-time" type="number" min="5" max="480" placeholder="30" required />
+            </label>
+            <label class="full">
+              <span>Ограничения (опционально)</span>
+              <textarea id="gen-constraints" rows="2" placeholder="Например: Только утром, без отвлечений"></textarea>
+            </label>
+            <button type="submit" class="btn primary">Сгенерировать план</button>
+          </form>
+          <div id="gen-result" class="result hidden"></div>
+        </div>
       </section>
 
       <section class="tab-section hidden" data-tab-section="progress">
@@ -127,6 +174,48 @@
             <div class="ex-item"><span>⏱️ 5 мин</span> Осознанная практика: «микрошаги»</div>
             <div class="ex-item"><span>⏱️ 10 мин</span> Техника Помидоро (1 спринт)</div>
           </div>
+        </div>
+
+        <!-- Grit-тест -->
+        <div class="card">
+          <div class="card-title">Тест на Grit</div>
+          <form id="grit-form">
+            <label class="full">
+              <span>Я упорно работаю над достижением целей (1-5)</span>
+              <select required>
+                <option value="">Выберите</option>
+                <option value="1">1 - Совсем не про меня</option>
+                <option value="2">2 - Скорее не про меня</option>
+                <option value="3">3 - Нейтрально</option>
+                <option value="4">4 - Скорее про меня</option>
+                <option value="5">5 - Полностью про меня</option>
+              </select>
+            </label>
+            <label class="full">
+              <span>Я не сдаюсь при неудачах (1-5)</span>
+              <select required>
+                <option value="">Выберите</option>
+                <option value="1">1 - Совсем не про меня</option>
+                <option value="2">2 - Скорее не про меня</option>
+                <option value="3">3 - Нейтрально</option>
+                <option value="4">4 - Скорее про меня</option>
+                <option value="5">5 - Полностью про меня</option>
+              </select>
+            </label>
+            <label class="full">
+              <span>Мои интересы меняются редко (1-5)</span>
+              <select required>
+                <option value="">Выберите</option>
+                <option value="1">1 - Совсем не про меня</option>
+                <option value="2">2 - Скорее не про меня</option>
+                <option value="3">3 - Нейтрально</option>
+                <option value="4">4 - Скорее про меня</option>
+                <option value="5">5 - Полностью про меня</option>
+              </select>
+            </label>
+            <button type="submit" class="btn primary">Рассчитать Grit</button>
+          </form>
+          <div id="grit-result" class="result hidden"></div>
         </div>
       </section>
 
