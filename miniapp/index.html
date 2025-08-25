@@ -13,14 +13,26 @@
       <div id="onboarding-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onb-title">
         <div class="modal-backdrop" data-onb-close></div>
         <div class="modal-card">
-          <h2 id="onb-title">Как работать с Grit за день</h2>
+          <h2 id="onb-title">Настройка вашей цели</h2>
+          
+          <div id="goal-setup" class="goal-setup">
+            <label class="goal-input">
+              <span>Ваша главная цель:</span>
+              <input id="main-goal" type="text" placeholder="например: Запустить свой бизнес" maxlength="100" />
+            </label>
+            <label class="goal-input">
+              <span>Что считаем целевыми действиями:</span>
+              <input id="action-type" type="text" placeholder="например: звонки клиентам, посты в соцсетях" maxlength="100" />
+            </label>
+          </div>
+          
           <ul class="onb-list">
-            <li><strong>Что такое «касания»</strong>: любые целевые контакты по продаже/продвижению (звонок, личка, письмо, встреча).</li>
-            <li><strong>Зачем этот бот</strong>: держать ритм. Утром — план, днём — факт, вечером — сверка. Так растёт выручка.</li>
-            <li><strong>Утро</strong>: внесите план — касания, демо, фокус (мин).</li>
+            <li><strong>Что такое Grit</strong>: настойчивость + страсть к долгосрочной цели; держим ритм даже когда сложно.</li>
+            <li><strong>Целевые действия</strong>: любые конкретные шаги, которые приближают к вашей главной цели.</li>
+            <li><strong>Зачем этот бот</strong>: держать ритм. Утром — план, днём — факт, вечером — сверка.</li>
+            <li><strong>Утро</strong>: внесите план — действия, встречи, фокус (мин).</li>
             <li><strong>Днём</strong>: отмечайте факты быстрыми инпутами ниже.</li>
             <li><strong>Вечер</strong>: сверка обещано/сделано — цель: идеальный день.</li>
-            <li><strong>Серия</strong>: если тяжело — отметьте «минимум», цепочку не ломаем.</li>
           </ul>
           <div class="onb-actions">
             <button id="onb-ok" class="btn primary">Понятно</button>
@@ -30,18 +42,18 @@
       </div>
       <header class="header">
         <h1>Grit — план и факт</h1>
-        <p class="subtitle">Ежедневные метрики: касания, демо, фокус</p>
+        <p class="subtitle">Ежедневные метрики: целевые действия, встречи, фокус</p>
       </header>
 
       <section class="card">
         <h2>План на сегодня</h2>
         <form id="plan-form" class="form-grid" autocomplete="off">
           <label>
-            <span>Касания (шт)</span>
-            <input id="plan-touches" type="number" min="0" inputmode="numeric" placeholder="например, 20" />
+            <span>Целевые действия (шт)</span>
+            <input id="plan-touches" type="number" min="0" inputmode="numeric" placeholder="например, 10" />
           </label>
           <label>
-            <span>Демо (шт)</span>
+            <span>Встречи/демо (шт)</span>
             <input id="plan-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
           </label>
           <label class="full">
@@ -57,7 +69,7 @@
         <div class="progress-grid">
           <div class="progress-item">
             <div class="progress-label">
-              <span>Касания</span>
+              <span>Целевые действия</span>
               <span id="touches-progress">0 / 0</span>
             </div>
             <div class="progress-bar">
@@ -66,7 +78,7 @@
           </div>
           <div class="progress-item">
             <div class="progress-label">
-              <span>Демо</span>
+              <span>Встречи/демо</span>
               <span id="demos-progress">0 / 0</span>
             </div>
             <div class="progress-bar">
@@ -92,11 +104,11 @@
         <h2>Факт — быстрые отметки</h2>
         <form id="fact-form" class="form-grid" autocomplete="off">
           <label>
-            <span>Касания +</span>
+            <span>Целевые действия +</span>
             <input id="fact-touches" type="number" min="0" inputmode="numeric" placeholder="например, 5" />
           </label>
           <label>
-            <span>Демо +</span>
+            <span>Встречи/демо +</span>
             <input id="fact-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
           </label>
           <label class="full">
