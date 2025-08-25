@@ -1224,4 +1224,109 @@ function onReady() {
   try { tg?.ready(); } catch (_) {}
 }
 
+// SUPER TESTING FUNCTION
+function testAllButtons() {
+  const debugInfo = document.getElementById('debug-info');
+  let log = [];
+  
+  log.push('🧪 === SUPER TESTING STARTED ===');
+  log.push(`⏰ Time: ${new Date().toLocaleTimeString()}`);
+  log.push('');
+  
+  // Test button existence
+  const buttons = {
+    'edit-goal-btn': '✏️ Edit Goal',
+    'add-quarterly-goal': '➕ Add Goal',
+    'show-insights': '🧠 Insights',
+    'capture-btn': '📥 Capture',
+    'onb-ok': '🚀 Onboarding'
+  };
+  
+  log.push('📋 BUTTON EXISTENCE TEST:');
+  Object.entries(buttons).forEach(([id, name]) => {
+    const btn = document.getElementById(id);
+    log.push(`${btn ? '✅' : '❌'} ${name}: ${btn ? 'Found' : 'NOT FOUND'}`);
+  });
+  log.push('');
+  
+  // Test global functions
+  log.push('🌐 GLOBAL FUNCTIONS TEST:');
+  log.push(`${window.gritGtdUI ? '✅' : '❌'} window.gritGtdUI: ${window.gritGtdUI ? 'Available' : 'NOT FOUND'}`);
+  log.push(`${typeof gritGtdData !== 'undefined' ? '✅' : '❌'} gritGtdData: ${typeof gritGtdData !== 'undefined' ? 'Available' : 'NOT FOUND'}`);
+  log.push('');
+  
+  // Test data
+  log.push('💾 DATA TEST:');
+  try {
+    const hasMainGoal = gritGtdData.profile.mainGoal?.text;
+    log.push(`${hasMainGoal ? '✅' : '❌'} Main Goal: ${hasMainGoal || 'Not set'}`);
+    log.push(`✅ GTD Inbox: ${gritGtdData.gtd?.inbox?.length || 0} items`);
+    log.push(`✅ Next Actions: ${gritGtdData.gtd?.nextActions?.length || 0} items`);
+    log.push(`✅ GRIT Score: ${gritGtdData.profile.totalScore || 0}`);
+  } catch (e) {
+    log.push(`❌ Data Error: ${e.message}`);
+  }
+  log.push('');
+  
+  // Manual button tests
+  log.push('🎯 MANUAL BUTTON TESTS:');
+  
+  // Test edit button
+  const editBtn = document.getElementById('edit-goal-btn');
+  if (editBtn) {
+    try {
+      editBtn.click();
+      log.push('✅ Edit button: Click triggered');
+      // Close modal if opened
+      setTimeout(() => {
+        const modal = document.querySelector('.modal');
+        if (modal) {
+          modal.remove();
+          log.push('✅ Edit modal: Opened and closed');
+        }
+      }, 100);
+    } catch (e) {
+      log.push(`❌ Edit button error: ${e.message}`);
+    }
+  }
+  
+  log.push('');
+  log.push('🔄 Testing completed! Check above for issues.');
+  
+  if (debugInfo) {
+    debugInfo.innerHTML = log.join('<br>');
+  }
+  
+  // Also show in toast
+  const issues = log.filter(line => line.includes('❌')).length;
+  if (issues > 0) {
+    showToast(`🐛 Found ${issues} issues! Check debug info below.`, 'error');
+  } else {
+    showToast('✅ All tests passed! Buttons should work.', 'success');
+  }
+}
+
+// Initialize debug info on load
+function updateDebugInfo() {
+  const debugInfo = document.getElementById('debug-info');
+  if (debugInfo) {
+    const buttonCount = document.querySelectorAll('button').length;
+    const hasMainGoal = gritGtdData.profile.mainGoal?.text;
+    
+    debugInfo.innerHTML = `
+      🧪 DEBUG STATUS:<br>
+      📊 Total buttons: ${buttonCount}<br>
+      🎯 Main goal: ${hasMainGoal ? '✅ Set' : '❌ Not set'}<br>
+      📥 Inbox items: ${gritGtdData.gtd?.inbox?.length || 0}<br>
+      ⚡ Next actions: ${gritGtdData.gtd?.nextActions?.length || 0}<br>
+      🔄 GRIT Score: ${gritGtdData.profile.totalScore || 0}<br>
+      <br>
+      Click "Test All Buttons" to run comprehensive test!
+    `;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', onReady);
+
+// Update debug info after page load
+setTimeout(updateDebugInfo, 500);
