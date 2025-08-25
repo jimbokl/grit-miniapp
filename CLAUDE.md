@@ -1,12 +1,19 @@
 ## CLAUDE: Personal Goal Tracker Development Guidelines
 
-This document defines the development standards for the Personal Goal Tracker project (Telegram WebApp). This is a fully personalized goal tracking system that adapts to any user's objectives and terminology.
+This document defines the development standards for the Personal Goal Tracker project (Telegram WebApp). This is a fully personalized goal tracking system with glassmorphism design that adapts to any user's objectives and terminology.
+
+## ⚠️ DEPLOYMENT LESSONS LEARNED:
+- **GitHub Pages deploys from MAIN branch, NOT gh-pages**
+- **Always update the correct folder**: `/miniapp/` for this project
+- **GitHub Pages caching is AGGRESSIVE** - use embedded styles or versioned filenames for design changes
+- **Test deployment target first** before making major changes
 
 ### 1) Technology Stack
-- **Frontend**: Vanilla JavaScript ES6+, HTML5, CSS3 (no frameworks - keep it lightweight)
+- **Frontend**: Vanilla JavaScript ES6+, HTML5, CSS3 with Glassmorphism design system
+- **Design**: iOS/Material You inspired with vibrant gradients and blur effects
 - **Backend**: Python 3.11+ with `python-telegram-bot` for the bot API
 - **Database**: PostgreSQL (production) - no Redis/SQLite/Sheets in production
-- **Hosting**: Railway/Render/Heroku for backend, static hosting for frontend
+- **Hosting**: GitHub Pages (main branch /miniapp folder), Railway/Render/Heroku for backend
 - **Telegram Integration**: WebApp SDK for frontend, Bot API for backend
 
 ### 2) Architecture
@@ -47,10 +54,18 @@ This document defines the development standards for the Personal Goal Tracker pr
 
 ### 4) Code Quality Standards
 **Frontend:**
-- Modern ES6+ JavaScript, no transpilation required
-- Semantic HTML5 with proper accessibility attributes
-- CSS custom properties for theming, mobile-first responsive design
+- Modern ES6+ JavaScript with comprehensive error handling and offline support
+- Glassmorphism design system with CSS custom properties
+- Mobile-first responsive design optimized for Telegram WebApp
+- Comprehensive form validation and loading states
 - Clear function names, avoid deep nesting, early returns
+
+**Design System:**
+- Vibrant gradient backgrounds (purple-blue primary)
+- Glass morphism effects with backdrop-filter blur
+- Premium color palette (coral, mint, gold accents)
+- Smooth animations with cubic-bezier easing
+- Touch-optimized component sizing (60px+ buttons)
 
 **Backend:**
 - PEP 8 compliance, type hints everywhere (Python typing)
@@ -84,11 +99,17 @@ This document defines the development standards for the Personal Goal Tracker pr
 - **E2E**: Test full flow from WebApp to backend
 - **Coverage**: Target 80%+ for critical business logic
 
-### 9) Deployment
-- **Frontend**: Static hosting (Netlify, Vercel, GitHub Pages)
+### 9) Deployment - CRITICAL SETUP NOTES
+- **Frontend**: GitHub Pages (main branch, /miniapp folder) 
 - **Backend**: PaaS hosting (Railway, Render, Heroku)
 - **Environment**: Staging and production environments
 - **Monitoring**: Error tracking, performance monitoring
+
+**🚨 DEPLOYMENT GOTCHAS:**
+- GitHub Pages for this project deploys from **main branch /miniapp folder**
+- CSS caching is aggressive - use embedded styles for major design changes
+- Always test deployment target before major updates
+- Use versioned filenames or cache-busting for CSS updates
 
 ### 10) Development Workflow
 - **Branching**: Feature branches, PR reviews required

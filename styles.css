@@ -1,0 +1,30 @@
+:root {
+  /* VIBRANT GLASSMORPHISM COLOR SCHEME */
+  --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-glass: rgba(255, 255, 255, 0.08);
+  --bg-elevated: rgba(255, 255, 255, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.9);
+  --primary: #ff6b6b;
+  --primary-gradient: linear-gradient(135deg, #ff6b6b, #feca57);
+  --success-gradient: linear-gradient(135deg, #26de81, #2bcbba);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --glass-blur: blur(20px);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* This CSS file is updated to ensure glassmorphism design loads properly */
+.glassmorphism-loaded {
+  background: var(--bg-primary);
+  backdrop-filter: var(--glass-blur);
+}
