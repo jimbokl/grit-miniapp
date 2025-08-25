@@ -2,11 +2,19 @@
 
 This document defines the development standards for the Personal Goal Tracker project (Telegram WebApp). This is a fully personalized goal tracking system with glassmorphism design that adapts to any user's objectives and terminology.
 
-## ⚠️ DEPLOYMENT LESSONS LEARNED:
-- **GitHub Pages deploys from MAIN branch, NOT gh-pages**
-- **Always update the correct folder**: `/miniapp/` for this project
-- **GitHub Pages caching is AGGRESSIVE** - use embedded styles or versioned filenames for design changes
-- **Test deployment target first** before making major changes
+## ⚠️ DEPLOYMENT LESSONS LEARNED (из личного опыта):
+- **GitHub Pages для этого проекта**: main branch, ROOT папка
+- **ЕДИНСТВЕННЫЙ URL**: https://jimbokl.github.io/grit-miniapp/ 
+- **НЕ создавать лишние ветки** - использовать только main
+- **НЕ создавать лишние URL** - один проект = один URL
+- **GitHub Pages кеширование АГРЕССИВНОЕ** - встраивать стили для больших изменений
+- **Всегда проверять deployment target** перед изменениями
+
+**🤦‍♂️ Ошибки которые я сделал:**
+- Создал ненужную gh-pages ветку  
+- Обновлял неправильные папки
+- Создал лишние файлы и URL
+- Не проверил изначальные настройки GitHub Pages
 
 ### 1) Technology Stack
 - **Frontend**: Vanilla JavaScript ES6+, HTML5, CSS3 with Glassmorphism design system
@@ -105,11 +113,12 @@ This document defines the development standards for the Personal Goal Tracker pr
 - **Environment**: Staging and production environments
 - **Monitoring**: Error tracking, performance monitoring
 
-**🚨 DEPLOYMENT GOTCHAS:**
-- GitHub Pages for this project deploys from **main branch /miniapp folder**
+**🚨 DEPLOYMENT GOTCHAS (исправлено):**
+- GitHub Pages for this project deploys from **main branch ROOT folder**
+- ЕДИНСТВЕННЫЙ правильный URL: https://jimbokl.github.io/grit-miniapp/
 - CSS caching is aggressive - use embedded styles for major design changes
 - Always test deployment target before major updates
-- Use versioned filenames or cache-busting for CSS updates
+- НЕ использовать gh-pages ветку для этого проекта
 
 ### 10) Development Workflow
 - **Branching**: Feature branches, PR reviews required
