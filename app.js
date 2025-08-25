@@ -726,21 +726,39 @@ const gritGtdUI = {
       
       const goalElement = document.createElement('div');
       goalElement.className = 'quarterly-goal-item';
+      // Enhanced deadline tracking
+      const isUrgent = daysLeft <= 7 && daysLeft > 0;
+      const deadlineText = isOverdue ? 'Просрочено!' : 
+                          isUrgent ? `⚠️ ${daysLeft} дней` : 
+                          `${daysLeft} дней`;
+      
+      // Format deadline date
+      const deadlineDate = new Date(goal.deadline).toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+      
+      goalElement.className = `quarterly-goal-item ${isOverdue ? 'goal-overdue' : isUrgent ? 'goal-urgent' : ''}`;
       goalElement.innerHTML = `
         <div class="goal-header">
           <span class="goal-title">${goal.text}</span>
-          <span class="days-left ${isOverdue ? 'overdue' : ''}">${isOverdue ? 'Просрочено' : `${daysLeft} дней`}</span>
+          <span class="days-left ${isOverdue ? 'overdue' : isUrgent ? 'urgent' : ''}">${deadlineText}</span>
+        </div>
+        <div class="goal-deadline">
+          📅 Дедлайн: ${deadlineDate}
         </div>
         <div class="goal-progress">
           <div class="progress-bar">
-            <div class="progress-fill" style="width: ${goal.progress}%"></div>
+            <div class="progress-fill ${goal.progress >= 100 ? 'complete' : ''}" style="width: ${goal.progress}%"></div>
           </div>
           <span class="progress-text">${goal.progress}%</span>
         </div>
         <div class="goal-actions">
-          <button onclick="gritUI.updateGoalProgress('${goal.id}', ${Math.min(goal.progress + 10, 100)})" class="mini-btn">+10%</button>
-          <button onclick="gritUI.updateGoalProgress('${goal.id}', ${Math.min(goal.progress + 25, 100)})" class="mini-btn">+25%</button>
-          <button onclick="gritUI.deleteQuarterlyGoal('${goal.id}')" class="mini-btn delete">🗑️</button>
+          <button onclick="window.updateGoalProgress('${goal.id}', ${Math.min(goal.progress + 10, 100)})" class="mini-btn">+10%</button>
+          <button onclick="window.updateGoalProgress('${goal.id}', ${Math.min(goal.progress + 25, 100)})" class="mini-btn">+25%</button>
+          ${goal.progress < 100 ? `<button onclick="window.updateGoalProgress('${goal.id}', 100)" class="mini-btn complete">✅ Готово</button>` : ''}
+          <button onclick="window.deleteQuarterlyGoal('${goal.id}')" class="mini-btn delete">🗑️</button>
         </div>
       `;
       container.appendChild(goalElement);
@@ -1202,6 +1220,25 @@ window.showInsights = function() {
     window.gritGtdUI.showInsights();
   } else {
     console.error('❌ gritGtdUI.showInsights not available');
+  }
+};
+
+// Goal management functions
+window.updateGoalProgress = function(goalId, newProgress) {
+  console.log('🔧 updateGoalProgress() called:', goalId, newProgress);
+  if (window.gritGtdUI && window.gritGtdUI.updateGoalProgress) {
+    window.gritGtdUI.updateGoalProgress(goalId, newProgress);
+  } else {
+    console.error('❌ gritGtdUI.updateGoalProgress not available');
+  }
+};
+
+window.deleteQuarterlyGoal = function(goalId) {
+  console.log('🔧 deleteQuarterlyGoal() called:', goalId);
+  if (window.gritGtdUI && window.gritGtdUI.deleteQuarterlyGoal) {
+    window.gritGtdUI.deleteQuarterlyGoal(goalId);
+  } else {
+    console.error('❌ gritGtdUI.deleteQuarterlyGoal not available');
   }
 };
 

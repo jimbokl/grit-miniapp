@@ -1111,6 +1111,40 @@ input::placeholder {
   display: flex;
   gap: 6px;
   justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Goal deadline display */
+.goal-deadline {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+/* Goal status indicators */
+.goal-urgent {
+  border-left: 4px solid var(--warning);
+}
+
+.goal-overdue {
+  border-left: 4px solid var(--error);
+  background: rgba(255, 82, 82, 0.1);
+}
+
+.days-left.urgent {
+  background: var(--warning);
+  animation: urgentPulse 2s infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.mini-btn.complete {
+  background: var(--success);
+  font-weight: 700;
 }
     </style>
   </head>
