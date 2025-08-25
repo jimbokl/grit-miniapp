@@ -70,6 +70,55 @@ function openInTelegram() {
   tg.expand?.();
 }
 
+// User settings and personalization
+const userSettings = {
+  mainGoal: '',
+  actionType: '',
+  
+  save() {
+    try {
+      localStorage.setItem('grit_user_settings', JSON.stringify({
+        mainGoal: this.mainGoal,
+        actionType: this.actionType
+      }));
+    } catch (e) {
+      console.warn('Could not save user settings:', e);
+    }
+  },
+  
+  load() {
+    try {
+      const stored = localStorage.getItem('grit_user_settings');
+      if (stored) {
+        const data = JSON.parse(stored);
+        this.mainGoal = data.mainGoal || '';
+        this.actionType = data.actionType || '';
+      }
+    } catch (e) {
+      console.warn('Could not load user settings:', e);
+    }
+  },
+  
+  updateInterface() {
+    const actionLabels = document.querySelectorAll('span');
+    actionLabels.forEach(label => {
+      if (label.textContent.includes('Целевые действия')) {
+        if (this.actionType) {
+          label.textContent = label.textContent.replace('Целевые действия', this.actionType);
+        }
+      }
+    });
+    
+    // Update subtitle if main goal is set
+    if (this.mainGoal) {
+      const subtitle = document.querySelector('.subtitle');
+      if (subtitle) {
+        subtitle.textContent = `Цель: ${this.mainGoal}`;
+      }
+    }
+  }
+};
+
 // Progress tracking functionality
 const dailyProgress = {
   goals: { touches: 0, demos: 0, focus_minutes: 0 },
@@ -256,6 +305,10 @@ function onReady() {
   const modal = document.getElementById('onboarding-modal');
   const onbOk = document.getElementById('onb-ok');
   
+  // Initialize user settings
+  userSettings.load();
+  userSettings.updateInterface();
+  
   // Initialize progress tracking
   dailyProgress.loadFromStorage();
   
@@ -272,17 +325,45 @@ function onReady() {
     showToast('Работа в автономном режиме', 'warning');
   });
 
-  // Onboarding modal — показать один раз
+  // Onboarding modal — показать один раз или если нет главной цели
   const ONB_KEY = 'grit_onboarding_v1';
-  const shouldShowOnboarding = !localStorage.getItem(ONB_KEY);
+  const shouldShowOnboarding = !localStorage.getItem(ONB_KEY) || !userSettings.mainGoal;
   if (shouldShowOnboarding && modal) {
     modal.classList.remove('hidden');
+    // Pre-fill existing values
+    if (userSettings.mainGoal) {
+      document.getElementById('main-goal').value = userSettings.mainGoal;
+    }
+    if (userSettings.actionType) {
+      document.getElementById('action-type').value = userSettings.actionType;
+    }
   }
+  
   onbOk?.addEventListener('click', () => {
+    // Save user settings
+    const mainGoal = document.getElementById('main-goal').value.trim();
+    const actionType = document.getElementById('action-type').value.trim();
+    
+    if (!mainGoal) {
+      showToast('Пожалуйста, укажите вашу главную цель', 'warning');
+      return;
+    }
+    
+    userSettings.mainGoal = mainGoal;
+    userSettings.actionType = actionType || 'Целевые действия';
+    userSettings.save();
+    userSettings.updateInterface();
+    
     localStorage.setItem(ONB_KEY, '1');
     modal?.classList.add('hidden');
+    showToast('Настройки сохранены!', 'success');
   });
+  
   modal?.querySelector('[data-onb-close]')?.addEventListener('click', () => {
+    if (!userSettings.mainGoal) {
+      showToast('Пожалуйста, настройте вашу цель', 'warning');
+      return;
+    }
     localStorage.setItem(ONB_KEY, '1');
     modal?.classList.add('hidden');
   });

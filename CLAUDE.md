@@ -25,11 +25,12 @@ This document defines the development standards for the Grit Mini App project (T
 - `db/` - Database migrations (Alembic) and schemas
 
 ### 3) Core Business Rules
-- **Daily Goals**: Three core metrics - `касания` (touches), `демо` (demos), `фокус` (focus minutes)
+- **Daily Goals**: Three core metrics - `целевые действия` (target actions), `встречи/демо` (meetings/demos), `фокус` (focus minutes)
+- **Personalization**: Users define their main goal and what counts as "target actions" for them
 - **Perfect Day**: Achievement of all three daily goals
 - **Minimum Day**: Manual flag to maintain streak without breaking chain
 - **User Timezone**: Per-user timezone support, week runs Monday-Sunday
-- **Data Flow**: Morning planning → Day tracking → Evening review
+- **Data Flow**: Goal setup → Morning planning → Day tracking → Evening review
 
 ### 4) Code Quality Standards
 **Frontend:**
