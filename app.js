@@ -576,7 +576,36 @@ const gritGtdUI = {
           </label>
           <label class="goal-input">
             <span>📅 Дедлайн:</span>
-            <input id="quarterly-deadline" type="date" required />
+            <div class="custom-date-picker">
+              <input id="quarterly-deadline" type="text" readonly placeholder="Выберите дату" />
+              <button type="button" class="date-picker-btn" onclick="this.parentElement.querySelector('.date-dropdown').classList.toggle('hidden')">📅</button>
+              <div class="date-dropdown hidden">
+                <div class="quick-dates">
+                  <button type="button" onclick="setQuarterlyDate(7)" class="quick-date-btn">Неделя</button>
+                  <button type="button" onclick="setQuarterlyDate(30)" class="quick-date-btn">Месяц</button>
+                  <button type="button" onclick="setQuarterlyDate(90)" class="quick-date-btn">Квартал</button>
+                  <button type="button" onclick="setQuarterlyDate(180)" class="quick-date-btn">Полгода</button>
+                </div>
+                <div class="month-picker">
+                  <select id="month-select">
+                    <option value="0">Январь</option>
+                    <option value="1">Февраль</option>
+                    <option value="2">Март</option>
+                    <option value="3">Апрель</option>
+                    <option value="4">Май</option>
+                    <option value="5">Июнь</option>
+                    <option value="6">Июль</option>
+                    <option value="7">Август</option>
+                    <option value="8">Сентябрь</option>
+                    <option value="9">Октябрь</option>
+                    <option value="10">Ноябрь</option>
+                    <option value="11">Декабрь</option>
+                  </select>
+                  <select id="year-select"></select>
+                </div>
+                <button type="button" onclick="applyCustomDate()" class="btn primary" style="margin-top: 12px; width: 100%;">Применить</button>
+              </div>
+            </div>
           </label>
         </div>
         <div class="onb-actions">
@@ -588,20 +617,58 @@ const gritGtdUI = {
     
     document.body.appendChild(modal);
     
+    // Initialize year select
+    const yearSelect = document.getElementById('year-select');
+    if (yearSelect) {
+      const currentYear = new Date().getFullYear();
+      for (let year = currentYear; year <= currentYear + 3; year++) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearSelect.appendChild(option);
+      }
+      yearSelect.value = currentYear;
+    }
+    
+    // Initialize month select to current month
+    const monthSelect = document.getElementById('month-select');
+    if (monthSelect) {
+      monthSelect.value = new Date().getMonth().toString();
+    }
+    
     // Set default deadline to 3 months from now
     const deadline = new Date();
     deadline.setMonth(deadline.getMonth() + 3);
-    document.getElementById('quarterly-deadline').value = deadline.toISOString().split('T')[0];
+    const defaultDate = deadline.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long', 
+      year: 'numeric'
+    });
+    
+    const deadlineInput = document.getElementById('quarterly-deadline');
+    if (deadlineInput) {
+      deadlineInput.value = defaultDate;
+      deadlineInput.setAttribute('data-date', deadline.toISOString().split('T')[0]);
+    }
     
     document.getElementById('save-quarterly').onclick = () => {
       const text = document.getElementById('quarterly-goal-text').value.trim();
-      const deadline = document.getElementById('quarterly-deadline').value;
+      const deadlineInput = document.getElementById('quarterly-deadline');
+      const deadline = deadlineInput.getAttribute('data-date') || deadlineInput.value;
       
-      if (text && deadline) {
-        const goal = gritGtdData.addQuarterlyGoal(text, deadline);
-        this.renderQuarterlyGoals();
-        showToast('🎲 Промежуточная цель добавлена!', 'success');
+      if (!text) {
+        showToast('🎯 Введите описание цели', 'warning');
+        return;
       }
+      
+      if (!deadline) {
+        showToast('📅 Выберите дедлайн', 'warning');
+        return;
+      }
+      
+      const goal = gritGtdData.addQuarterlyGoal(text, deadline);
+      this.renderQuarterlyGoals();
+      showToast('🎲 Промежуточная цель добавлена!', 'success');
       modal.remove();
     };
     
@@ -1082,6 +1149,61 @@ window.showInsights = function() {
   }
 };
 
+// Date picker functions
+window.setQuarterlyDate = function(days) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  const formattedDate = date.toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+  
+  const input = document.getElementById('quarterly-deadline');
+  if (input) {
+    input.value = formattedDate;
+    input.setAttribute('data-date', date.toISOString().split('T')[0]);
+  }
+  
+  // Close dropdown
+  const dropdown = document.querySelector('.date-dropdown');
+  if (dropdown) {
+    dropdown.classList.add('hidden');
+  }
+  
+  showToast(`📅 Дедлайн установлен: ${formattedDate}`, 'success');
+};
+
+window.applyCustomDate = function() {
+  const monthSelect = document.getElementById('month-select');
+  const yearSelect = document.getElementById('year-select');
+  
+  if (monthSelect && yearSelect) {
+    const month = parseInt(monthSelect.value);
+    const year = parseInt(yearSelect.value);
+    
+    const date = new Date(year, month, 1);
+    const formattedDate = date.toLocaleDateString('ru-RU', {
+      month: 'long',
+      year: 'numeric'
+    });
+    
+    const input = document.getElementById('quarterly-deadline');
+    if (input) {
+      input.value = formattedDate;
+      input.setAttribute('data-date', date.toISOString().split('T')[0]);
+    }
+    
+    // Close dropdown
+    const dropdown = document.querySelector('.date-dropdown');
+    if (dropdown) {
+      dropdown.classList.add('hidden');
+    }
+    
+    showToast(`📅 Дедлайн установлен: ${formattedDate}`, 'success');
+  }
+};
+
 function onReady() {
   // Initialize GRIT+GTD system
   gritGtdData.load();
@@ -1309,109 +1431,5 @@ function onReady() {
   try { tg?.ready(); } catch (_) {}
 }
 
-// SUPER TESTING FUNCTION
-function testAllButtons() {
-  const debugInfo = document.getElementById('debug-info');
-  let log = [];
-  
-  log.push('🧪 === SUPER TESTING STARTED ===');
-  log.push(`⏰ Time: ${new Date().toLocaleTimeString()}`);
-  log.push('');
-  
-  // Test button existence
-  const buttons = {
-    'edit-goal-btn': '✏️ Edit Goal',
-    'add-quarterly-goal': '➕ Add Goal',
-    'show-insights': '🧠 Insights',
-    'capture-btn': '📥 Capture',
-    'onb-ok': '🚀 Onboarding'
-  };
-  
-  log.push('📋 BUTTON EXISTENCE TEST:');
-  Object.entries(buttons).forEach(([id, name]) => {
-    const btn = document.getElementById(id);
-    log.push(`${btn ? '✅' : '❌'} ${name}: ${btn ? 'Found' : 'NOT FOUND'}`);
-  });
-  log.push('');
-  
-  // Test global functions
-  log.push('🌐 GLOBAL FUNCTIONS TEST:');
-  log.push(`${window.gritGtdUI ? '✅' : '❌'} window.gritGtdUI: ${window.gritGtdUI ? 'Available' : 'NOT FOUND'}`);
-  log.push(`${typeof gritGtdData !== 'undefined' ? '✅' : '❌'} gritGtdData: ${typeof gritGtdData !== 'undefined' ? 'Available' : 'NOT FOUND'}`);
-  log.push('');
-  
-  // Test data
-  log.push('💾 DATA TEST:');
-  try {
-    const hasMainGoal = gritGtdData.profile.mainGoal?.text;
-    log.push(`${hasMainGoal ? '✅' : '❌'} Main Goal: ${hasMainGoal || 'Not set'}`);
-    log.push(`✅ GTD Inbox: ${gritGtdData.gtd?.inbox?.length || 0} items`);
-    log.push(`✅ Next Actions: ${gritGtdData.gtd?.nextActions?.length || 0} items`);
-    log.push(`✅ GRIT Score: ${gritGtdData.profile.totalScore || 0}`);
-  } catch (e) {
-    log.push(`❌ Data Error: ${e.message}`);
-  }
-  log.push('');
-  
-  // Manual button tests
-  log.push('🎯 MANUAL BUTTON TESTS:');
-  
-  // Test edit button
-  const editBtn = document.getElementById('edit-goal-btn');
-  if (editBtn) {
-    try {
-      editBtn.click();
-      log.push('✅ Edit button: Click triggered');
-      // Close modal if opened
-      setTimeout(() => {
-        const modal = document.querySelector('.modal');
-        if (modal) {
-          modal.remove();
-          log.push('✅ Edit modal: Opened and closed');
-        }
-      }, 100);
-    } catch (e) {
-      log.push(`❌ Edit button error: ${e.message}`);
-    }
-  }
-  
-  log.push('');
-  log.push('🔄 Testing completed! Check above for issues.');
-  
-  if (debugInfo) {
-    debugInfo.innerHTML = log.join('<br>');
-  }
-  
-  // Also show in toast
-  const issues = log.filter(line => line.includes('❌')).length;
-  if (issues > 0) {
-    showToast(`🐛 Found ${issues} issues! Check debug info below.`, 'error');
-  } else {
-    showToast('✅ All tests passed! Buttons should work.', 'success');
-  }
-}
-
-// Initialize debug info on load
-function updateDebugInfo() {
-  const debugInfo = document.getElementById('debug-info');
-  if (debugInfo) {
-    const buttonCount = document.querySelectorAll('button').length;
-    const hasMainGoal = gritGtdData.profile.mainGoal?.text;
-    
-    debugInfo.innerHTML = `
-      🧪 DEBUG STATUS:<br>
-      📊 Total buttons: ${buttonCount}<br>
-      🎯 Main goal: ${hasMainGoal ? '✅ Set' : '❌ Not set'}<br>
-      📥 Inbox items: ${gritGtdData.gtd?.inbox?.length || 0}<br>
-      ⚡ Next actions: ${gritGtdData.gtd?.nextActions?.length || 0}<br>
-      🔄 GRIT Score: ${gritGtdData.profile.totalScore || 0}<br>
-      <br>
-      Click "Test All Buttons" to run comprehensive test!
-    `;
-  }
-}
 
 document.addEventListener('DOMContentLoaded', onReady);
-
-// Update debug info after page load
-setTimeout(updateDebugInfo, 500);

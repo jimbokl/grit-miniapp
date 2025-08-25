@@ -957,6 +957,92 @@ input::placeholder {
   font-size: 12px;
 }
 
+/* Custom Date Picker */
+.custom-date-picker {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.custom-date-picker input {
+  flex: 1;
+  cursor: pointer;
+}
+
+.date-picker-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.date-picker-btn:hover {
+  transform: scale(1.1);
+  background: var(--primary-light);
+}
+
+.date-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 16px;
+  z-index: 1000;
+  box-shadow: var(--glass-shadow);
+  margin-top: 8px;
+}
+
+.quick-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.quick-date-btn {
+  padding: 8px 12px;
+  background: var(--bg-glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quick-date-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.month-picker {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.month-picker select {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg-glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
 /* Error Animations */
 @keyframes errorShake {
   0%, 100% { transform: translateX(0); }
@@ -1074,9 +1160,6 @@ input::placeholder {
 
       <header class="header">
         <h1>🔥 GRIT + GTD</h1>
-        <div class="version-badge">v3.0 Super System ✨</div>
-        <div class="commit-badge">Commit: 364648f</div>
-        <div class="user-info" id="user-info">👤 Loading user...</div>
         <div class="grit-score" id="grit-score">GRIT Score: <span id="score-value">0</span></div>
         <div class="main-goal-display" id="main-goal-display">
           <span id="goal-text">Настройте вашу главную цель</span>
@@ -1229,26 +1312,6 @@ input::placeholder {
         </div>
       </section>
       
-      <section class="card">
-        <h2>🧪 DEBUG INFO</h2>
-        <div id="debug-info" style="background: var(--bg-elevated); padding: 16px; border-radius: 12px; font-family: monospace; font-size: 12px; color: var(--text-muted);">
-          Loading debug info...
-        </div>
-        <button onclick="testAllButtons()" class="btn primary" style="margin-top: 12px; width: 100%;">
-          🔧 Test All Buttons
-        </button>
-      </section>
-      
-      <footer style="text-align: center; padding: 20px; margin-top: 20px;">
-        <div style="background: var(--bg-glass); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; opacity: 0.8;">
-          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
-            🔥 GRIT+GTD v3.0 | Super Productivity System
-          </div>
-          <div style="font-size: 11px; color: var(--text-muted); font-family: Monaco, Consolas, monospace;">
-            📅 25.08.2025 | 🔄 Commit: a44590f | ⚡ GitHub Actions
-          </div>
-        </div>
-      </footer>
     </main>
 
     <script src="./app.js"></script>
