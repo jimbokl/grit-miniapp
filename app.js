@@ -84,55 +84,70 @@ const cloudSync = {
     return null;
   },
   
-  // Simple cross-device sync via shared localStorage key
-  saveToSharedStorage(userData) {
+  // UNIVERSAL SYNC: Use same key pattern across all devices/browsers
+  saveToUniversalStorage(userData) {
     try {
       const telegramUser = getTelegramUser();
       
-      // Use shared key for cross-device sync
-      const sharedKey = `grit_shared_${telegramUser.username}`;
+      // Universal key format - will work across devices with same browser
+      const universalKey = `GRIT_USER_${telegramUser.username}`;
       const syncData = {
-        user: telegramUser,
-        data: userData,
-        timestamp: Date.now(),
-        deviceId: navigator.userAgent.slice(0, 50)
+        username: telegramUser.username,
+        userData: userData,
+        lastSync: Date.now(),
+        device: navigator.platform || 'unknown'
       };
       
-      localStorage.setItem(sharedKey, JSON.stringify(syncData));
+      // Save to multiple keys for maximum compatibility
+      localStorage.setItem(universalKey, JSON.stringify(syncData));
+      localStorage.setItem(`grit_${telegramUser.username}`, JSON.stringify(syncData));
+      localStorage.setItem('grit_latest_user', telegramUser.username);
       
-      // Also save device-specific backup
-      localStorage.setItem(`grit_device_backup`, JSON.stringify(syncData));
-      
+      console.log('💾 Saved to universal storage:', universalKey);
       return true;
     } catch (error) {
-      console.warn('Shared storage failed:', error);
+      console.warn('Universal storage save failed:', error);
       return false;
     }
   },
   
-  loadFromSharedStorage() {
+  loadFromUniversalStorage() {
     try {
       const telegramUser = getTelegramUser();
-      const sharedKey = `grit_shared_${telegramUser.username}`;
       
-      // Try shared storage first
-      let stored = localStorage.getItem(sharedKey);
-      if (!stored) {
-        // Try device backup
-        stored = localStorage.getItem('grit_device_backup');
-      }
+      // Try multiple key formats
+      const keys = [
+        `GRIT_USER_${telegramUser.username}`,
+        `grit_${telegramUser.username}`,
+        `grit_shared_${telegramUser.username}`,
+        `grit_gtd_data_${telegramUser.username}`
+      ];
       
-      if (stored) {
-        const syncData = JSON.parse(stored);
-        if (syncData.user.username === telegramUser.username) {
-          return syncData.data;
+      for (const key of keys) {
+        const stored = localStorage.getItem(key);
+        if (stored) {
+          try {
+            const syncData = JSON.parse(stored);
+            // Check if data belongs to current user
+            if (syncData.username === telegramUser.username || 
+                syncData.user?.username === telegramUser.username ||
+                syncData.telegramUser?.username === telegramUser.username) {
+              
+              console.log('📱 Loaded from universal storage:', key);
+              return syncData.userData || syncData.data || syncData;
+            }
+          } catch (e) {
+            console.warn('Invalid data in key:', key);
+          }
         }
       }
+      
+      console.log('❌ No data found for user:', telegramUser.username);
+      return null;
     } catch (error) {
-      console.warn('Shared storage load failed:', error);
+      console.warn('Universal storage load failed:', error);
+      return null;
     }
-    
-    return null;
   }
 };
 
@@ -286,19 +301,20 @@ const gritGtdData = {
       ...userData
     }));
     
-    // Try cross-device sync
+    // Universal cross-device sync
     try {
-      const syncSaved = cloudSync.saveToSharedStorage(userData);
+      const syncSaved = cloudSync.saveToUniversalStorage(userData);
       if (syncSaved) {
+        console.log('✅ Data synced universally');
         // Update sync status in UI
         const syncStatus = document.getElementById('sync-status');
         if (syncStatus) {
-          syncStatus.textContent = '✅ Синхронизировано';
+          syncStatus.innerHTML = `✅ Синхронизировано<br><small style="opacity:0.7;">${new Date().toLocaleTimeString()}</small>`;
           syncStatus.style.color = 'var(--success)';
         }
       }
     } catch (error) {
-      console.warn('Sync failed, data saved locally:', error);
+      console.warn('Universal sync failed:', error);
     }
   },
   
@@ -306,30 +322,24 @@ const gritGtdData = {
     try {
       const telegramUser = getTelegramUser();
       
-      // Try shared storage sync first
-      let sharedData = null;
+      // Try universal storage sync first
+      let syncedData = null;
       try {
-        sharedData = cloudSync.loadFromSharedStorage();
-        if (sharedData) {
-          showToast('📱 Загружено с другого устройства', 'success');
-          
-          // Update sync status
-          const syncStatus = document.getElementById('sync-status');
-          if (syncStatus) {
-            syncStatus.textContent = '📱 Синхронизировано';
-            syncStatus.style.color = 'var(--success)';
-          }
+        syncedData = cloudSync.loadFromUniversalStorage();
+        if (syncedData) {
+          console.log('📱 Data loaded from another device');
+          showToast('📱 Загружены цели с другого устройства', 'success');
         }
       } catch (error) {
-        console.warn('Shared sync load failed:', error);
+        console.warn('Universal sync load failed:', error);
       }
       
-      if (sharedData) {
-        // Use shared data
-        this.profile = { ...this.profile, ...sharedData.profile };
-        this.gtd = { ...this.gtd, ...sharedData.gtd };
-        this.dailyLogs = sharedData.dailyLogs || [];
-        this.analytics = sharedData.analytics || { patterns: {}, trends: {} };
+      if (syncedData) {
+        // Use synced data
+        this.profile = { ...this.profile, ...syncedData.profile };
+        this.gtd = { ...this.gtd, ...syncedData.gtd };
+        this.dailyLogs = syncedData.dailyLogs || [];
+        this.analytics = syncedData.analytics || { patterns: {}, trends: {} };
       } else {
         // Fallback to localStorage
         const userKey = `grit_gtd_data_${telegramUser.username}`;
@@ -1448,32 +1458,49 @@ window.applyCustomDate = function() {
   }
 };
 
-function onReady() {
-  // Initialize GRIT+GTD system
-  gritGtdData.load();
+async function onReady() {
+  console.log('🚀 App starting...');
   
-  // Copy UI methods to global scope for onclick handlers
+  // 1. FIRST: Get Telegram user
+  const telegramUser = getTelegramUser();
+  console.log('👤 Telegram user:', telegramUser);
+  
+  // Show user info immediately
+  const userInfoEl = document.getElementById('sync-status');
+  if (userInfoEl) {
+    userInfoEl.textContent = `👤 ${telegramUser.firstName} (@${telegramUser.username})`;
+  }
+  
+  // 2. SECOND: Load user's personal data
+  console.log('📥 Loading user data...');
+  await gritGtdData.load();
+  
+  // 3. THIRD: Copy UI methods to global scope
   window.gritGtdUI = gritGtdUI;
   
-  // Render all components
+  // 4. FOURTH: Render all components with user data
+  console.log('🎨 Rendering UI...');
   gritGtdUI.updateHeader();
   gritGtdUI.renderQuarterlyGoals();
   gritGtdUI.updateAnalytics();
   gritGtdUI.renderInbox();
   gritGtdUI.renderNextActions();
   
-  // Initialize daily progress
+  // 5. Initialize daily progress
   dailyProgress.load();
   
+  // 6. LAST: Check if onboarding needed AFTER data is loaded
   const modal = document.getElementById('onboarding-modal');
-  const onbOk = document.getElementById('onb-ok');
+  const hasMainGoal = gritGtdData.profile.mainGoal?.text;
   
-  // Show onboarding only if no main goal set AND after data is loaded
-  setTimeout(() => {
-    if (!gritGtdData.profile.mainGoal?.text && modal) {
-      modal.classList.remove('hidden');
-    }
-  }, 1500); // Wait for cloud sync to complete
+  console.log('🎯 Has main goal:', hasMainGoal);
+  
+  if (!hasMainGoal && modal) {
+    console.log('🚀 Showing onboarding - no goal found');
+    modal.classList.remove('hidden');
+  } else {
+    console.log('✅ User has goal, skipping onboarding');
+  }
   
   // GTD Capture functionality - FIXED
   const captureInput = document.getElementById('quick-capture');
