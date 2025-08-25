@@ -1,6 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Grit — Mini App</title>
+    <link rel="preconnect" href="https://telegram.org" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  </head>
+  <body>
+    <main class="container" id="app-root">
+      <div id="onboarding-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onb-title">
+        <div class="modal-backdrop" data-onb-close></div>
+        <div class="modal-card">
+          <h2 id="onb-title">Как работать с Grit за день</h2>
           <ul class="onb-list">
-            <li><strong>Что такое Grit</strong>: настойчивость + страсть к долгосрочной цели; держим ритм даже когда сложно.</li>
-            <li><strong>4 компонента</strong>: Интерес → Практика → Цель → Надежда. Маленькие шаги, каждый день.</li>
             <li><strong>Что такое «касания»</strong>: любые целевые контакты по продаже/продвижению (звонок, личка, письмо, встреча).</li>
             <li><strong>Зачем этот бот</strong>: держать ритм. Утром — план, днём — факт, вечером — сверка. Так растёт выручка.</li>
             <li><strong>Утро</strong>: внесите план — касания, демо, фокус (мин).</li>
@@ -8,31 +22,96 @@
             <li><strong>Вечер</strong>: сверка обещано/сделано — цель: идеальный день.</li>
             <li><strong>Серия</strong>: если тяжело — отметьте «минимум», цепочку не ломаем.</li>
           </ul>
-          <form id="onb-form" class="form-grid" autocomplete="off">
-            <label class="full">
-              <span>Главная задача (пример: «Видео каждый день»)</span>
-              <input id="onb-task" type="text" placeholder="Опишите цель простыми словами" />
-            </label>
-            <label>
-              <span>Частота</span>
-              <select id="onb-frequency">
-                <option value="daily">Ежедневно</option>
-                <option value="weekdays">Пн–Пт</option>
-                <option value="custom">Выбор дней</option>
-              </select>
-            </label>
-            <label>
-              <span>Время в день (мин)</span>
-              <input id="onb-time" type="number" min="5" step="5" placeholder="например, 60" />
-            </label>
-            <label class="full">
-              <span>Ограничения/условия</span>
-              <input id="onb-constraints" type="text" placeholder="Нет студии, только телефон; вечерние слоты" />
-            </label>
-            <div class="onb-actions">
-              <button id="onb-generate" class="btn primary" type="submit">Сгенерировать план</button>
-              <button id="onb-ok" class="btn ghost" type="button">Понятно</button>
-            </div>
-          </form>
-          <div id="onb-result" class="onb-result hidden"></div>
+          <div class="onb-actions">
+            <button id="onb-ok" class="btn primary">Понятно</button>
+          </div>
           <p class="onb-tip">Подсказка: маленькие шаги ежедневно дают большой прогресс.</p>
+        </div>
+      </div>
+      <header class="header">
+        <h1>Grit — план и факт</h1>
+        <p class="subtitle">Ежедневные метрики: касания, демо, фокус</p>
+      </header>
+
+      <section class="card">
+        <h2>План на сегодня</h2>
+        <form id="plan-form" class="form-grid" autocomplete="off">
+          <label>
+            <span>Касания (шт)</span>
+            <input id="plan-touches" type="number" min="0" inputmode="numeric" placeholder="например, 20" />
+          </label>
+          <label>
+            <span>Демо (шт)</span>
+            <input id="plan-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
+          </label>
+          <label class="full">
+            <span>Фокус (мин)</span>
+            <input id="plan-focus" type="number" min="0" inputmode="numeric" placeholder="например, 90" />
+          </label>
+          <button type="submit" class="btn primary">Отправить план</button>
+        </form>
+      </section>
+
+      <section class="card progress-card">
+        <h2>Прогресс за сегодня</h2>
+        <div class="progress-grid">
+          <div class="progress-item">
+            <div class="progress-label">
+              <span>Касания</span>
+              <span id="touches-progress">0 / 0</span>
+            </div>
+            <div class="progress-bar">
+              <div id="touches-bar" class="progress-fill" style="width: 0%"></div>
+            </div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label">
+              <span>Демо</span>
+              <span id="demos-progress">0 / 0</span>
+            </div>
+            <div class="progress-bar">
+              <div id="demos-bar" class="progress-fill" style="width: 0%"></div>
+            </div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label">
+              <span>Фокус</span>
+              <span id="focus-progress">0 / 0 мин</span>
+            </div>
+            <div class="progress-bar">
+              <div id="focus-bar" class="progress-fill" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+        <div id="perfect-day-indicator" class="perfect-day hidden">
+          🎯 Идеальный день!
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Факт — быстрые отметки</h2>
+        <form id="fact-form" class="form-grid" autocomplete="off">
+          <label>
+            <span>Касания +</span>
+            <input id="fact-touches" type="number" min="0" inputmode="numeric" placeholder="например, 5" />
+          </label>
+          <label>
+            <span>Демо +</span>
+            <input id="fact-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
+          </label>
+          <label class="full">
+            <span>Фокус + (мин)</span>
+            <input id="fact-focus" type="number" min="0" inputmode="numeric" placeholder="например, 30" />
+          </label>
+          <button type="submit" class="btn success">Добавить факт</button>
+        </form>
+      </section>
+
+      
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+  </html>
+
+

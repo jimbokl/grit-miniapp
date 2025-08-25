@@ -1,16 +1,57 @@
 const tg = window.Telegram?.WebApp;
 
-function getApiBase() {
-  const ls = (typeof localStorage !== 'undefined') ? localStorage.getItem('GRIT_API_BASE') : '';
-  return ls || window.GRIT_API_BASE || 'http://localhost:8000';
+function showToast(message, type = 'info') {
+  const node = document.createElement('div');
+  node.className = `toast toast-${type}`;
+  node.textContent = message;
+  node.setAttribute('role', 'alert');
+  document.body.appendChild(node);
+  
+  // Animate in
+  requestAnimationFrame(() => {
+    node.classList.add('toast-show');
+  });
+  
+  setTimeout(() => {
+    node.classList.remove('toast-show');
+    setTimeout(() => node.remove(), 300);
+  }, 2200);
 }
 
-function showToast(message) {
-  const node = document.createElement('div');
-  node.className = 'toast';
-  node.textContent = message;
-  document.body.appendChild(node);
-  setTimeout(() => node.remove(), 2200);
+function setButtonLoading(button, isLoading) {
+  if (isLoading) {
+    button.disabled = true;
+    button.dataset.originalText = button.textContent;
+    button.textContent = 'Отправка...';
+    button.classList.add('btn-loading');
+  } else {
+    button.disabled = false;
+    button.textContent = button.dataset.originalText || button.textContent;
+    button.classList.remove('btn-loading');
+  }
+}
+
+function validateForm(form) {
+  const inputs = form.querySelectorAll('input[type="number"]');
+  let isValid = true;
+  let hasValue = false;
+  
+  inputs.forEach(input => {
+    const value = parseInt(input.value) || 0;
+    
+    // Clear previous validation
+    input.classList.remove('input-error', 'input-success');
+    
+    if (input.value.trim() && value < 0) {
+      input.classList.add('input-error');
+      isValid = false;
+    } else if (value > 0) {
+      input.classList.add('input-success');
+      hasValue = true;
+    }
+  });
+  
+  return { isValid, hasValue };
 }
 
 function getInitDataUnsafe() {
@@ -21,20 +62,192 @@ function getInitDataUnsafe() {
   }
 }
 
+function openInTelegram() {
+  if (!tg) {
+    window.open('https://t.me', '_blank');
+    return;
+  }
+  tg.expand?.();
+}
+
+// Progress tracking functionality
+const dailyProgress = {
+  goals: { touches: 0, demos: 0, focus_minutes: 0 },
+  current: { touches: 0, demos: 0, focus_minutes: 0 },
+  
+  updateGoals(goals) {
+    this.goals = { ...goals };
+    this.updateDisplay();
+    this.saveToStorage();
+  },
+  
+  updateCurrent(increments) {
+    this.current.touches += increments.touches || 0;
+    this.current.demos += increments.demos || 0;
+    this.current.focus_minutes += increments.focus_minutes || 0;
+    this.updateDisplay();
+    this.saveToStorage();
+  },
+  
+  updateDisplay() {
+    // Update progress text
+    document.getElementById('touches-progress').textContent = 
+      `${this.current.touches} / ${this.goals.touches}`;
+    document.getElementById('demos-progress').textContent = 
+      `${this.current.demos} / ${this.goals.demos}`;
+    document.getElementById('focus-progress').textContent = 
+      `${this.current.focus_minutes} / ${this.goals.focus_minutes} мин`;
+    
+    // Update progress bars
+    this.updateProgressBar('touches', this.current.touches, this.goals.touches);
+    this.updateProgressBar('demos', this.current.demos, this.goals.demos);
+    this.updateProgressBar('focus', this.current.focus_minutes, this.goals.focus_minutes);
+    
+    // Check for perfect day
+    this.checkPerfectDay();
+  },
+  
+  updateProgressBar(type, current, goal) {
+    const bar = document.getElementById(`${type}-bar`);
+    if (!bar || goal === 0) return;
+    
+    const percentage = Math.min((current / goal) * 100, 100);
+    bar.style.width = `${percentage}%`;
+    
+    if (current >= goal) {
+      bar.classList.add('complete');
+    } else {
+      bar.classList.remove('complete');
+    }
+  },
+  
+  checkPerfectDay() {
+    const isPerfect = this.current.touches >= this.goals.touches && 
+                      this.current.demos >= this.goals.demos && 
+                      this.current.focus_minutes >= this.goals.focus_minutes &&
+                      (this.goals.touches > 0 || this.goals.demos > 0 || this.goals.focus_minutes > 0);
+    
+    const indicator = document.getElementById('perfect-day-indicator');
+    if (isPerfect) {
+      indicator.classList.remove('hidden');
+    } else {
+      indicator.classList.add('hidden');
+    }
+  },
+  
+  saveToStorage() {
+    try {
+      localStorage.setItem('grit_progress', JSON.stringify({
+        goals: this.goals,
+        current: this.current,
+        date: new Date().toDateString()
+      }));
+    } catch (e) {
+      console.warn('Could not save progress to localStorage:', e);
+    }
+  },
+  
+  loadFromStorage() {
+    try {
+      const stored = localStorage.getItem('grit_progress');
+      if (stored) {
+        const data = JSON.parse(stored);
+        const today = new Date().toDateString();
+        
+        if (data.date === today) {
+          this.goals = data.goals || { touches: 0, demos: 0, focus_minutes: 0 };
+          this.current = data.current || { touches: 0, demos: 0, focus_minutes: 0 };
+        } else {
+          // New day, reset current but keep goals
+          this.goals = data.goals || { touches: 0, demos: 0, focus_minutes: 0 };
+          this.current = { touches: 0, demos: 0, focus_minutes: 0 };
+        }
+        
+        this.updateDisplay();
+      }
+    } catch (e) {
+      console.warn('Could not load progress from localStorage:', e);
+    }
+  }
+};
+
+// Offline queue for failed requests
+const offlineQueue = {
+  queue: [],
+  
+  add(url, data) {
+    this.queue.push({ url, data, timestamp: Date.now() });
+    this.saveToStorage();
+  },
+  
+  async processQueue() {
+    if (this.queue.length === 0) return;
+    
+    const processed = [];
+    for (const item of this.queue) {
+      try {
+        await postJSON(item.url, item.data);
+        processed.push(item);
+      } catch (err) {
+        console.warn('Failed to process offline item:', err);
+        // Keep item in queue if it's not too old (24 hours)
+        if (Date.now() - item.timestamp > 24 * 60 * 60 * 1000) {
+          processed.push(item); // Remove old items
+        }
+      }
+    }
+    
+    this.queue = this.queue.filter(item => !processed.includes(item));
+    this.saveToStorage();
+    
+    if (processed.length > 0) {
+      showToast(`Синхронизировано ${processed.length} записей`, 'success');
+    }
+  },
+  
+  saveToStorage() {
+    try {
+      localStorage.setItem('grit_offline_queue', JSON.stringify(this.queue));
+    } catch (e) {
+      console.warn('Could not save offline queue:', e);
+    }
+  },
+  
+  loadFromStorage() {
+    try {
+      const stored = localStorage.getItem('grit_offline_queue');
+      if (stored) {
+        this.queue = JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('Could not load offline queue:', e);
+      this.queue = [];
+    }
+  }
+};
+
 async function postJSON(url, data) {
-  const base = getApiBase();
-  const full = base.replace(/\/$/, '') + url;
-  const resp = await fetch(full, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Telegram-Init-Data': tg?.initData || '',
-    },
-    body: JSON.stringify(data),
-    credentials: 'include',
-  });
-  if (!resp.ok) throw new Error(`Request failed: ${resp.status}`);
-  return resp.json().catch(() => ({}));
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Telegram-Init-Data': tg?.initData || '',
+      },
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+    
+    if (!resp.ok) throw new Error(`Request failed: ${resp.status}`);
+    return resp.json().catch(() => ({}));
+  } catch (error) {
+    // If offline, add to queue
+    if (!navigator.onLine) {
+      offlineQueue.add(url, data);
+      throw new Error('Сохранено локально. Отправится при подключении к сети.');
+    }
+    throw error;
+  }
 }
 
 function onReady() {
@@ -43,85 +256,128 @@ function onReady() {
   const modal = document.getElementById('onboarding-modal');
   const onbOk = document.getElementById('onb-ok');
   
-  // Onboarding modal — показывать при каждом запуске
-  if (modal) {
+  // Initialize progress tracking
+  dailyProgress.loadFromStorage();
+  
+  // Initialize offline support
+  offlineQueue.loadFromStorage();
+  
+  // Handle online/offline events
+  window.addEventListener('online', () => {
+    showToast('Подключение восстановлено', 'success');
+    offlineQueue.processQueue();
+  });
+  
+  window.addEventListener('offline', () => {
+    showToast('Работа в автономном режиме', 'warning');
+  });
+
+  // Onboarding modal — показать один раз
+  const ONB_KEY = 'grit_onboarding_v1';
+  const shouldShowOnboarding = !localStorage.getItem(ONB_KEY);
+  if (shouldShowOnboarding && modal) {
     modal.classList.remove('hidden');
   }
   onbOk?.addEventListener('click', () => {
+    localStorage.setItem(ONB_KEY, '1');
     modal?.classList.add('hidden');
   });
   modal?.querySelector('[data-onb-close]')?.addEventListener('click', () => {
+    localStorage.setItem(ONB_KEY, '1');
     modal?.classList.add('hidden');
-  });
-
-  // Генерация плана через онбординг
-  const onbForm = document.getElementById('onb-form');
-  const onbResult = document.getElementById('onb-result');
-  onbForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const task = document.getElementById('onb-task').value.trim();
-    const frequency = document.getElementById('onb-frequency').value;
-    const time = Number(document.getElementById('onb-time').value || 0);
-    const constraints = document.getElementById('onb-constraints').value.trim();
-    if (!task || time <= 0) {
-      showToast('Заполните задачу и время в день');
-      return;
-    }
-    try {
-      const data = await postJSON('/api/plan/generate', {
-        init: getInitDataUnsafe(),
-        task,
-        frequency,
-        time_minutes: time,
-        constraints,
-      });
-      const text = data?.plan_text || 'План сгенерирован.';
-      if (onbResult) {
-        onbResult.textContent = text;
-        onbResult.classList.remove('hidden');
-      }
-      tg?.HapticFeedback?.notificationOccurred('success');
-    } catch (err) {
-      console.error(err);
-      showToast('Ошибка генерации плана');
-      tg?.HapticFeedback?.notificationOccurred('error');
-    }
   });
 
   planForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    const submitBtn = planForm.querySelector('button[type="submit"]');
+    const { isValid, hasValue } = validateForm(planForm);
+    
+    if (!isValid) {
+      showToast('Пожалуйста, введите корректные значения (не меньше 0)', 'error');
+      tg?.HapticFeedback?.notificationOccurred('error');
+      return;
+    }
+    
+    if (!hasValue) {
+      showToast('Введите хотя бы одну цель на день', 'warning');
+      return;
+    }
+    
     const plan = {
       touches: Number(document.getElementById('plan-touches').value || 0),
       demos: Number(document.getElementById('plan-demos').value || 0),
       focus_minutes: Number(document.getElementById('plan-focus').value || 0),
     };
+    
+    setButtonLoading(submitBtn, true);
+    
     try {
       await postJSON('/api/plan/today', { plan, init: getInitDataUnsafe() });
-      showToast('План сохранён');
+      showToast('План сохранён', 'success');
       tg?.HapticFeedback?.notificationOccurred('success');
+      
+      // Update progress tracking with new goals
+      dailyProgress.updateGoals(plan);
+      
+      // Clear form after successful submission
+      planForm.reset();
+      planForm.querySelectorAll('input').forEach(input => {
+        input.classList.remove('input-error', 'input-success');
+      });
+      
     } catch (err) {
       console.error(err);
-      showToast('Ошибка: не удалось сохранить план');
+      showToast('Ошибка: не удалось сохранить план', 'error');
       tg?.HapticFeedback?.notificationOccurred('error');
+    } finally {
+      setButtonLoading(submitBtn, false);
     }
   });
 
   factForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    const submitBtn = factForm.querySelector('button[type="submit"]');
+    const { isValid, hasValue } = validateForm(factForm);
+    
+    if (!isValid) {
+      showToast('Пожалуйста, введите корректные значения (не меньше 0)', 'error');
+      tg?.HapticFeedback?.notificationOccurred('error');
+      return;
+    }
+    
+    if (!hasValue) {
+      showToast('Введите хотя бы одно значение для добавления', 'warning');
+      return;
+    }
+    
     const inc = {
       touches: Number(document.getElementById('fact-touches').value || 0),
       demos: Number(document.getElementById('fact-demos').value || 0),
       focus_minutes: Number(document.getElementById('fact-focus').value || 0),
     };
+    
+    setButtonLoading(submitBtn, true);
+    
     try {
       await postJSON('/api/fact/increment', { inc, init: getInitDataUnsafe() });
-      showToast('Факт добавлен');
+      showToast('Факт добавлен', 'success');
       tg?.HapticFeedback?.notificationOccurred('success');
+      
+      // Update progress tracking with increments
+      dailyProgress.updateCurrent(inc);
+      
       factForm.reset();
+      factForm.querySelectorAll('input').forEach(input => {
+        input.classList.remove('input-error', 'input-success');
+      });
     } catch (err) {
       console.error(err);
-      showToast('Ошибка: не удалось добавить факт');
+      showToast('Ошибка: не удалось добавить факт', 'error');
       tg?.HapticFeedback?.notificationOccurred('error');
+    } finally {
+      setButtonLoading(submitBtn, false);
     }
   });
 
@@ -129,3 +385,5 @@ function onReady() {
 }
 
 document.addEventListener('DOMContentLoaded', onReady);
+
+
