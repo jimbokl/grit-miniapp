@@ -1,163 +1,457 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎉 GLASSMORPHISM v2.0 APPLIED!</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎯 Personal Goal Tracker v2.0 | Glassmorphism</title>
+    <link rel="preconnect" href="https://telegram.org" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            min-height: 100vh;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.4), transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(42, 252, 152, 0.3), transparent 50%);
-            z-index: -1;
-            animation: backgroundMove 10s ease-in-out infinite;
-        }
-        
-        @keyframes backgroundMove {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.1) rotate(2deg); }
-        }
-        
-        .container {
-            text-align: center;
-            padding: 60px 40px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            max-width: 450px;
-            position: relative;
-            overflow: hidden;
-            animation: cardFloat 3s ease-in-out infinite;
-        }
-        
-        @keyframes cardFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        h1 {
-            font-size: 54px;
-            font-weight: 900;
-            margin-bottom: 30px;
-            background: linear-gradient(135deg, #ff6b6b, #feca57);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(255, 107, 107, 0.8);
-            animation: textGlow 2s ease-in-out infinite;
-        }
-        
-        @keyframes textGlow {
-            0%, 100% { text-shadow: 0 0 30px rgba(255, 107, 107, 0.8); }
-            50% { text-shadow: 0 0 60px rgba(255, 107, 107, 1), 0 0 90px rgba(255, 107, 107, 0.6); }
-        }
-        
-        .version {
-            display: inline-block;
-            padding: 20px 40px;
-            background: linear-gradient(135deg, #26de81, #2bcbba);
-            color: white;
-            border-radius: 50px;
-            font-size: 18px;
-            font-weight: 700;
-            margin: 20px 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            box-shadow: 0 15px 35px rgba(38, 222, 129, 0.4);
-            animation: versionBounce 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes versionBounce {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-15px) scale(1.1); }
-        }
-        
-        .status {
-            font-size: 28px;
-            margin: 30px 0;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-            animation: statusPulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes statusPulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
-        .features {
-            text-align: left;
-            margin: 40px 0;
-            font-size: 20px;
-            line-height: 2;
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 30px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .timestamp {
-            font-size: 16px;
-            opacity: 0.9;
-            margin-top: 30px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+:root {
+  --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-glass: rgba(255, 255, 255, 0.1);
+  --bg-elevated: rgba(255, 255, 255, 0.15);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.9);
+  --text-muted: rgba(255, 255, 255, 0.6);
+  --primary: #ff6b6b;
+  --primary-gradient: linear-gradient(135deg, #ff6b6b, #feca57);
+  --success: #26de81;
+  --success-gradient: linear-gradient(135deg, #26de81, #2bcbba);
+  --error: #ff5252;
+  --warning: #ffa726;
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --radius-xl: 32px;
+  --radius-2xl: 40px;
+  --space-md: 20px;
+  --space-lg: 32px;
+  --space-xl: 48px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.3), transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(42, 252, 152, 0.3), transparent 50%);
+  z-index: -1;
+  animation: bgMove 15s ease-in-out infinite;
+}
+
+@keyframes bgMove {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-md);
+  position: relative;
+  z-index: 1;
+}
+
+.header {
+  text-align: center;
+  padding: var(--space-xl);
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--glass-shadow);
+  margin-bottom: var(--space-xl);
+}
+
+.header h1 {
+  font-size: 42px;
+  font-weight: 800;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 16px;
+}
+
+.version-badge {
+  display: inline-block;
+  padding: 12px 24px;
+  background: var(--primary-gradient);
+  color: white;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 16px;
+  animation: badgePulse 2s infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.subtitle {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin-top: 12px;
+}
+
+.card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  margin: var(--space-lg) 0;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 40px rgba(255, 107, 107, 0.2), var(--glass-shadow);
+}
+
+.card h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid .full { grid-column: 1 / -1; }
+
+@media (max-width: 480px) {
+  .form-grid { grid-template-columns: 1fr; }
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+input, select {
+  padding: 16px 20px;
+  border: 2px solid var(--glass-border);
+  border-radius: 24px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(10px);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn {
+  padding: 16px 32px;
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.btn.primary {
+  background: var(--primary-gradient);
+  color: white;
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+}
+
+.btn.success {
+  background: var(--success-gradient);
+  color: white;
+  box-shadow: 0 8px 25px rgba(38, 222, 129, 0.3);
+}
+
+.btn:hover {
+  transform: translateY(-4px) scale(1.05);
+}
+
+.progress-item {
+  padding: 24px;
+  background: var(--bg-elevated);
+  border-radius: 24px;
+  margin: 16px 0;
+  border: 1px solid var(--glass-border);
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+
+.progress-bar {
+  height: 12px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-gradient);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+
+.perfect-day {
+  background: var(--success-gradient);
+  padding: 24px;
+  border-radius: 24px;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 800;
+  margin: 24px 0;
+  animation: celebrate 2s infinite;
+}
+
+@keyframes celebrate {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.modal.hidden { display: none; }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-xl);
+  max-width: 400px;
+  margin: 20px;
+  box-shadow: var(--glass-shadow);
+}
+
+.goal-setup {
+  padding: 24px;
+  background: var(--bg-elevated);
+  border-radius: 20px;
+  margin: 20px 0;
+}
+
+.goal-input {
+  margin: 20px 0;
+}
+
+.onb-list {
+  list-style: none;
+  padding: 20px;
+  background: var(--bg-elevated);
+  border-radius: 16px;
+  margin: 20px 0;
+}
+
+.onb-list li {
+  margin: 12px 0;
+  padding: 8px 0;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.onb-list li:last-child { border-bottom: none; }
+
+.onb-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 16px 24px;
+  color: var(--text-primary);
+  font-weight: 600;
+  z-index: 2000;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.toast-show { opacity: 1; }
+
+.toast-success { border-left: 4px solid var(--success); }
+.toast-error { border-left: 4px solid var(--error); }
+.toast-warning { border-left: 4px solid var(--warning); }
+
+.hidden { display: none !important; }
     </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🎉 УСПЕХ!</h1>
-        <div class="version">🚀 v2.0 GLASSMORPHISM ✨</div>
-        <div class="status">✅ ОБНОВЛЕНИЯ ПРИМЕНЕНЫ!</div>
-        
-        <div class="features">
-            🌈 Vibrant gradient background<br>
-            ✨ Glassmorphism effects<br>
-            🎯 Complete personalization<br>
-            📱 Modern mobile design<br>
-            🚀 Premium animations<br>
-            🎨 iOS/Material styling
-        </div>
-        
-        <div class="timestamp">
-            📅 Обновлено: 25 августа 2025<br>
-            🕒 Время: <span id="current-time"></span><br>
-            🔄 Последний коммит: ce675b5
-        </div>
-    </div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Update timestamp
-            document.getElementById('current-time').textContent = new Date().toLocaleTimeString('ru-RU');
+  </head>
+  <body>
+    <main class="container" id="app-root">
+      <div id="onboarding-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onb-title">
+        <div class="modal-card">
+          <h2 id="onb-title">🎯 Настройте ваш персональный трекер</h2>
+          
+          <div id="goal-setup" class="goal-setup">
+            <label class="goal-input">
+              <span>🎯 Ваша главная цель:</span>
+              <input id="main-goal" type="text" placeholder="Например: Запустить свой стартап" maxlength="100" />
+            </label>
             
-            // Show confirmation
-            setTimeout(() => {
-                alert('🎉 GLASSMORPHISM DESIGN v2.0 УСПЕШНО ЗАГРУЖЕН!\n\n✅ Яркий градиентный фон\n✅ Glassmorphism эффекты\n✅ Современные анимации\n\nТеперь дизайн полностью изменен!');
-            }, 1000);
-        });
-    </script>
-</body>
-</html><!-- Force refresh Mon, Aug 25, 2025  1:02:35 PM -->
+            <label class="goal-input">
+              <span>Основные действия (что именно делаете):</span>
+              <input id="action1-name" type="text" placeholder="Например: звонки потенциальным клиентам" maxlength="50" />
+            </label>
+            
+            <label class="goal-input">
+              <span>Вспомогательные действия (что помогает):</span>
+              <input id="action2-name" type="text" placeholder="Например: встречи с инвесторами" maxlength="50" />
+            </label>
+            
+            <label class="goal-input">
+              <span>Время глубокой работы:</span>
+              <select id="focus-type">
+                <option value="изучение">Изучение/обучение</option>
+                <option value="разработка">Разработка/создание</option>
+                <option value="планирование">Планирование/стратегия</option>
+                <option value="практика">Практика/тренировка</option>
+                <option value="работа">Фокусная работа</option>
+              </select>
+            </label>
+          </div>
+          
+          <ul class="onb-list">
+            <li><strong>Принцип</strong>: превращаем большую цель в маленькие ежедневные шаги</li>
+            <li><strong>3 типа действий</strong>: основные + вспомогательные + глубокое погружение</li>
+            <li><strong>Ритм</strong>: утром планируем → днем делаем → вечером анализируем</li>
+          </ul>
+          
+          <div class="onb-actions">
+            <button id="onb-ok" class="btn primary">Начать</button>
+          </div>
+        </div>
+      </div>
+
+      <header class="header">
+        <h1>🎯 Персональный Трекер</h1>
+        <div class="version-badge">v2.0 Glassmorphism ✨</div>
+        <p class="subtitle" id="goal-subtitle">Универсальный трекер для любых целей</p>
+      </header>
+
+      <section class="card">
+        <h2>📋 План на сегодня</h2>
+        <form id="plan-form" class="form-grid" autocomplete="off">
+          <label>
+            <span id="plan-action1-label">Основные действия (шт)</span>
+            <input id="plan-touches" type="number" min="0" placeholder="10" />
+          </label>
+          <label>
+            <span id="plan-action2-label">Вспомогательные (шт)</span>
+            <input id="plan-demos" type="number" min="0" placeholder="2" />
+          </label>
+          <label class="full">
+            <span id="plan-focus-label">Время фокуса (мин)</span>
+            <input id="plan-focus" type="number" min="0" placeholder="90" />
+          </label>
+          <button type="submit" class="btn primary">💾 Сохранить план</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>📊 Прогресс за сегодня</h2>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span id="progress-action1-label">Основные действия</span>
+            <span id="touches-progress">0 / 0</span>
+          </div>
+          <div class="progress-bar">
+            <div id="touches-bar" class="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span id="progress-action2-label">Вспомогательные</span>
+            <span id="demos-progress">0 / 0</span>
+          </div>
+          <div class="progress-bar">
+            <div id="demos-bar" class="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span id="progress-focus-label">Время фокуса</span>
+            <span id="focus-progress">0 / 0 мин</span>
+          </div>
+          <div class="progress-bar">
+            <div id="focus-bar" class="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+        <div id="perfect-day-indicator" class="perfect-day hidden">
+          🎯 Идеальный день! Все цели достигнуты!
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>✅ Отметить выполненное</h2>
+        <form id="fact-form" class="form-grid" autocomplete="off">
+          <label>
+            <span id="fact-action1-label">Основные +</span>
+            <input id="fact-touches" type="number" min="0" placeholder="5" />
+          </label>
+          <label>
+            <span id="fact-action2-label">Вспомогательные +</span>
+            <input id="fact-demos" type="number" min="0" placeholder="1" />
+          </label>
+          <label class="full">
+            <span id="fact-focus-label">Фокус + (мин)</span>
+            <input id="fact-focus" type="number" min="0" placeholder="30" />
+          </label>
+          <button type="submit" class="btn success">✅ Добавить</button>
+        </form>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
