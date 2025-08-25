@@ -27,30 +27,32 @@ function getTelegramUser() {
 
 // REAL Cloud Sync System 
 const cloudSync = {
-  // Using simple HTTP POST to save data to external service
-  baseUrl: 'https://httpbin.org/anything', // Demo endpoint - replace with real service
+  // Real backend API endpoint
+  baseUrl: 'http://212.34.150.91:5000/api',
   
   async saveToCloud(userData) {
     try {
       const telegramUser = getTelegramUser();
       
-      // Send to simple cloud storage (for demo using httpbin.org)
-      const response = await fetch(this.baseUrl, {
+      // Save to real backend API
+      const response = await fetch(`${this.baseUrl}/sync/${telegramUser.username}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          action: 'save',
-          username: telegramUser.username,
-          userId: telegramUser.id,
-          data: userData,
-          timestamp: Date.now()
+          telegramUser: telegramUser,
+          profile: userData.profile,
+          gtd: userData.gtd,
+          dailyLogs: userData.dailyLogs,
+          analytics: userData.analytics,
+          lastSaved: Date.now()
         })
       });
       
       if (response.ok) {
-        console.log('☁️ Data saved to cloud for user:', telegramUser.username);
+        const result = await response.json();
+        console.log('☁️ Data saved to cloud:', result.message);
         return true;
       } else {
         console.warn('Cloud save failed:', response.status);
@@ -65,24 +67,30 @@ const cloudSync = {
   async loadFromCloud() {
     try {
       const telegramUser = getTelegramUser();
-      const binId = localStorage.getItem(`grit_bin_${telegramUser.username}`);
       
-      if (!binId) return null;
-      
-      const response = await fetch(`${this.baseUrl}/${binId}/latest`, {
+      // Load from real backend API
+      const response = await fetch(`${this.baseUrl}/sync/${telegramUser.username}`, {
+        method: 'GET',
         headers: {
-          'X-Master-Key': '$2a$10$your_api_key_here', // Would need real API key
+          'Content-Type': 'application/json',
         }
       });
       
       if (response.ok) {
         const result = await response.json();
-        return result.record?.data || null;
+        console.log('☁️ Data loaded from cloud:', result.message);
+        return result.data;
+      } else if (response.status === 404) {
+        console.log('📱 No cloud data found for user');
+        return null;
+      } else {
+        console.warn('Cloud load failed:', response.status);
+        return null;
       }
     } catch (error) {
       console.warn('Cloud load failed:', error);
+      return null;
     }
-    return null;
   },
   
   // UNIVERSAL SYNC: Use same key pattern across all devices/browsers
@@ -302,30 +310,39 @@ const gritGtdData = {
       ...userData
     }));
     
-      // TEMPORARY: Show sharing URL for cross-device sync
+    // Real cloud sync to backend
     try {
-      const telegramUser = getTelegramUser();
-      const compressed = btoa(JSON.stringify({
-        u: telegramUser.username,
-        d: userData
-      })).slice(0, 200); // Limit URL length
-      
-      const shareUrl = `${window.location.origin}${window.location.pathname}#user=${compressed}`;
-      
-      // Update sync status with share URL
-      const syncStatus = document.getElementById('sync-status');
-      if (syncStatus) {
-        syncStatus.innerHTML = `
-          📱 Для синхронизации откройте на других устройствах:<br>
-          <button onclick="copyShareUrl('${shareUrl}')" style="background: var(--primary); color: white; border: none; border-radius: 8px; padding: 4px 8px; font-size: 10px; margin-top: 4px;">
-            📋 Копировать ссылку
-          </button>
-        `;
+      const cloudSaved = await cloudSync.saveToCloud(userData);
+      if (cloudSaved) {
+        console.log('✅ Data saved to cloud backend');
+        // Update sync status in UI
+        const syncStatus = document.getElementById('sync-status');
+        if (syncStatus) {
+          syncStatus.innerHTML = `☁️ Синхронизировано с облаком<br><small style="opacity:0.7;">${new Date().toLocaleTimeString()}</small>`;
+          syncStatus.style.color = 'var(--success)';
+        }
+      } else {
+        // Fallback to URL sharing if cloud fails
+        const telegramUser = getTelegramUser();
+        const compressed = btoa(JSON.stringify({
+          u: telegramUser.username,
+          d: userData
+        })).slice(0, 200);
+        
+        const shareUrl = `${window.location.origin}${window.location.pathname}#user=${compressed}`;
+        
+        const syncStatus = document.getElementById('sync-status');
+        if (syncStatus) {
+          syncStatus.innerHTML = `
+            ⚠️ Облако недоступно. Для синхронизации:<br>
+            <button onclick="copyShareUrl('${shareUrl}')" style="background: var(--warning); color: white; border: none; border-radius: 8px; padding: 4px 8px; font-size: 10px; margin-top: 4px;">
+              📋 Копировать ссылку
+            </button>
+          `;
+        }
       }
-      
-      console.log('🔗 Share URL created:', shareUrl);
     } catch (error) {
-      console.warn('Share URL creation failed:', error);
+      console.warn('Cloud sync completely failed:', error);
     }
   },
   
@@ -333,13 +350,29 @@ const gritGtdData = {
     try {
       const telegramUser = getTelegramUser();
       
-      // FIRST: Try URL hash (shared link)
-      let syncedData = loadFromUrlHash();
-      if (syncedData) {
-        console.log('🔗 Data loaded from shared URL');
-        showToast('🔗 Загружены цели по ссылке с другого устройства', 'success');
-      } else {
-        // SECOND: Try localStorage sync
+      // PRIORITY 1: Try cloud API first
+      let syncedData = null;
+      try {
+        syncedData = await cloudSync.loadFromCloud();
+        if (syncedData) {
+          console.log('☁️ Data loaded from cloud backend');
+          showToast('☁️ Загружены цели из облака', 'success');
+        }
+      } catch (error) {
+        console.warn('Cloud API load failed:', error);
+      }
+      
+      // PRIORITY 2: Try URL hash if cloud fails
+      if (!syncedData) {
+        syncedData = loadFromUrlHash();
+        if (syncedData) {
+          console.log('🔗 Data loaded from shared URL');
+          showToast('🔗 Загружены цели по ссылке', 'success');
+        }
+      }
+      
+      // PRIORITY 3: Try localStorage as last resort
+      if (!syncedData) {
         try {
           syncedData = cloudSync.loadFromUniversalStorage();
           if (syncedData) {
@@ -1750,6 +1783,34 @@ async function onReady() {
   });
   
   try { tg?.ready(); } catch (_) {}
+  
+  // Start auto-sync every 30 seconds
+  setInterval(async () => {
+    try {
+      console.log('🔄 Auto-sync check...');
+      const cloudData = await cloudSync.loadFromCloud();
+      
+      if (cloudData && cloudData.lastSaved > gritGtdData.profile.lastSaved) {
+        console.log('🔄 Newer data found in cloud, updating...');
+        
+        // Merge cloud data
+        gritGtdData.profile = { ...gritGtdData.profile, ...cloudData.profile };
+        gritGtdData.gtd = { ...gritGtdData.gtd, ...cloudData.gtd };
+        gritGtdData.dailyLogs = cloudData.dailyLogs || gritGtdData.dailyLogs;
+        
+        // Re-render UI
+        gritGtdUI.updateHeader();
+        gritGtdUI.renderQuarterlyGoals();
+        gritGtdUI.renderInbox();
+        gritGtdUI.renderNextActions();
+        gritGtdUI.updateAnalytics();
+        
+        showToast('🔄 Данные обновлены с другого устройства', 'info');
+      }
+    } catch (error) {
+      console.warn('Auto-sync failed:', error);
+    }
+  }, 30000); // 30 seconds
 }
 
 
