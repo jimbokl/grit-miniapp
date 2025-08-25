@@ -334,11 +334,7 @@ const gritGtdUI = {
         goalTextEl.textContent = gritGtdData.profile.mainGoal.text;
       }
       
-      // Add edit button event listener if not already added
-      if (editBtn && !editBtn.hasAttribute('data-listener')) {
-        editBtn.addEventListener('click', () => this.showEditGoalModal());
-        editBtn.setAttribute('data-listener', 'true');
-      }
+      // Edit button listener is handled in onReady()
       
     } catch (error) {
       console.warn('Error updating header:', error);
@@ -492,9 +488,9 @@ const gritGtdUI = {
       const targetDate = document.getElementById('edit-target-date').value;
       
       if (newGoal) {
-        gritData.profile.mainGoal.text = newGoal;
-        gritData.profile.mainGoal.targetDate = targetDate;
-        gritData.save();
+        gritGtdData.profile.mainGoal.text = newGoal;
+        gritGtdData.profile.mainGoal.targetDate = targetDate;
+        gritGtdData.save();
         this.updateHeader();
         showToast('🎯 Главная цель обновлена!', 'success');
       } else {
@@ -542,7 +538,7 @@ const gritGtdUI = {
       const deadline = document.getElementById('quarterly-deadline').value;
       
       if (text && deadline) {
-        const goal = gritData.addQuarterlyGoal(text, deadline);
+        const goal = gritGtdData.addQuarterlyGoal(text, deadline);
         this.renderQuarterlyGoals();
         showToast('🎲 Промежуточная цель добавлена!', 'success');
       }
@@ -588,12 +584,7 @@ const gritGtdUI = {
       container.innerHTML = '<div class="no-goals">Пока нет промежуточных целей. Добавьте первую!</div>';
     }
     
-    // Add event listener to add button after rendering
-    const addBtn = document.getElementById('add-quarterly-goal');
-    if (addBtn && !addBtn.hasAttribute('data-listener')) {
-      addBtn.addEventListener('click', () => this.showAddQuarterlyGoalModal());
-      addBtn.setAttribute('data-listener', 'true');
-    }
+    // Add button listener is handled in onReady()
   },
   
   updateGoalProgress(goalId, newProgress) {
@@ -634,12 +625,7 @@ const gritGtdUI = {
       this.updateMotivationMessage();
       this.updateJourneyTimeline();
       
-      // Add insights button listener
-      const insightsBtn = document.getElementById('show-insights');
-      if (insightsBtn && !insightsBtn.hasAttribute('data-listener')) {
-        insightsBtn.addEventListener('click', () => this.showInsights());
-        insightsBtn.setAttribute('data-listener', 'true');
-      }
+      // Insights button listener is handled in onReady()
       
     } catch (error) {
       console.warn('Error updating analytics:', error);
@@ -1008,9 +994,17 @@ function setButtonLoading(button, isLoading) {
   }
 }
 
+// Global function for buttons to work
+window.gritGtdUI = {};
+
 function onReady() {
   // Initialize GRIT+GTD system
   gritGtdData.load();
+  
+  // Copy UI methods to global scope for onclick handlers
+  window.gritGtdUI = gritGtdUI;
+  
+  // Render all components
   gritGtdUI.updateHeader();
   gritGtdUI.renderQuarterlyGoals();
   gritGtdUI.updateAnalytics();
@@ -1028,25 +1022,77 @@ function onReady() {
     modal.classList.remove('hidden');
   }
   
-  // GTD Capture functionality
+  // GTD Capture functionality - FIXED
   const captureInput = document.getElementById('quick-capture');
   const captureBtn = document.getElementById('capture-btn');
   
-  captureBtn?.addEventListener('click', () => {
-    const text = captureInput.value.trim();
-    if (text) {
-      gritGtdData.captureItem(text);
-      gritGtdUI.renderInbox();
-      captureInput.value = '';
-      showToast('📥 Записано во входящие! Обработайте позже.', 'success');
-    }
-  });
+  if (captureBtn) {
+    captureBtn.addEventListener('click', () => {
+      const text = captureInput?.value?.trim();
+      if (text) {
+        gritGtdData.captureItem(text);
+        gritGtdUI.renderInbox();
+        captureInput.value = '';
+        showToast('📥 Записано во входящие! Обработайте позже.', 'success');
+      } else {
+        showToast('📝 Введите текст для записи', 'warning');
+      }
+    });
+  }
   
-  captureInput?.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-      captureBtn.click();
+  if (captureInput) {
+    captureInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        captureBtn?.click();
+      }
+    });
+  }
+  
+  // MANUAL EVENT LISTENERS FOR ALL BUTTONS - WITH DEBUG
+  setTimeout(() => {
+    console.log('🔧 Setting up button listeners...');
+    
+    const editBtn = document.getElementById('edit-goal-btn');
+    const addGoalBtn = document.getElementById('add-quarterly-goal');
+    const insightsBtn = document.getElementById('show-insights');
+    
+    console.log('Buttons found:', { editBtn: !!editBtn, addGoalBtn: !!addGoalBtn, insightsBtn: !!insightsBtn });
+    
+    if (editBtn) {
+      editBtn.addEventListener('click', () => {
+        console.log('✏️ Edit goal button clicked!');
+        gritGtdUI.showEditGoalModal();
+      });
+      console.log('✅ Edit button listener added');
+    } else {
+      console.warn('❌ Edit button not found!');
     }
-  });
+    
+    if (addGoalBtn) {
+      addGoalBtn.addEventListener('click', () => {
+        console.log('➕ Add goal button clicked!');
+        gritGtdUI.showAddQuarterlyGoalModal();
+      });
+      console.log('✅ Add goal button listener added');
+    } else {
+      console.warn('❌ Add goal button not found!');
+    }
+    
+    if (insightsBtn) {
+      insightsBtn.addEventListener('click', () => {
+        console.log('🧠 Insights button clicked!');
+        gritGtdUI.showInsights();
+      });
+      console.log('✅ Insights button listener added');
+    } else {
+      console.warn('❌ Insights button not found!');
+    }
+    
+    // Test all buttons exist
+    const allButtons = document.querySelectorAll('button');
+    console.log(`📊 Total buttons found: ${allButtons.length}`);
+    
+  }, 100);
   
   // Onboarding setup
   onbOk?.addEventListener('click', () => {
@@ -1092,10 +1138,16 @@ function onReady() {
     gritGtdUI.updateHeader();
     
     modal?.classList.add('hidden');
-    showToast('🔥 GRIT Tracker настроен! Начинайте достигать!', 'success');
+    showToast('🔥 GRIT+GTD настроен! Начинайте достигать!', 'success');
+    
+    // Re-render everything after setup
+    gritGtdUI.updateHeader();
+    gritGtdUI.renderQuarterlyGoals();
+    gritGtdUI.updateAnalytics();
   });
   
-  // Note: Button event listeners are now added dynamically in render methods
+  // TEST ALL FORMS
+  console.log('🧪 Testing form elements...');
   
   // Plan form
   document.getElementById('plan-form')?.addEventListener('submit', async (e) => {
