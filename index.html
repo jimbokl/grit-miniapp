@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 ОБНОВЛЕНИЯ ПРИМЕНЕНЫ! v2.0 Glassmorphism</title>
+    <title>🎉 GLASSMORPHISM v2.0 APPLIED!</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -26,12 +26,12 @@
                 radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.4), transparent 50%),
                 radial-gradient(circle at 80% 20%, rgba(42, 252, 152, 0.3), transparent 50%);
             z-index: -1;
-            animation: move 10s ease-in-out infinite;
+            animation: backgroundMove 10s ease-in-out infinite;
         }
         
-        @keyframes move {
+        @keyframes backgroundMove {
             0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.1) rotate(5deg); }
+            50% { transform: scale(1.1) rotate(2deg); }
         }
         
         .container {
@@ -43,21 +43,19 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 40px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            max-width: 400px;
+            max-width: 450px;
             position: relative;
             overflow: hidden;
+            animation: cardFloat 3s ease-in-out infinite;
         }
         
-        .container::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), transparent);
-            z-index: -1;
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
         
         h1 {
-            font-size: 48px;
+            font-size: 54px;
             font-weight: 900;
             margin-bottom: 30px;
             background: linear-gradient(135deg, #ff6b6b, #feca57);
@@ -65,91 +63,100 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             text-shadow: 0 0 30px rgba(255, 107, 107, 0.8);
-            animation: glow 2s ease-in-out infinite;
+            animation: textGlow 2s ease-in-out infinite;
         }
         
-        @keyframes glow {
+        @keyframes textGlow {
             0%, 100% { text-shadow: 0 0 30px rgba(255, 107, 107, 0.8); }
             50% { text-shadow: 0 0 60px rgba(255, 107, 107, 1), 0 0 90px rgba(255, 107, 107, 0.6); }
         }
         
         .version {
             display: inline-block;
-            padding: 16px 32px;
+            padding: 20px 40px;
             background: linear-gradient(135deg, #26de81, #2bcbba);
             color: white;
             border-radius: 50px;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
             margin: 20px 0;
             text-transform: uppercase;
             letter-spacing: 2px;
             box-shadow: 0 15px 35px rgba(38, 222, 129, 0.4);
-            animation: bounce 1s ease-in-out infinite;
+            animation: versionBounce 1.5s ease-in-out infinite;
         }
         
-        @keyframes bounce {
+        @keyframes versionBounce {
             0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-10px) scale(1.05); }
+            50% { transform: translateY(-15px) scale(1.1); }
         }
         
         .status {
-            font-size: 24px;
+            font-size: 28px;
             margin: 30px 0;
-            font-weight: 600;
+            font-weight: 700;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            animation: statusPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
         }
         
         .features {
             text-align: left;
-            margin: 30px 0;
-            font-size: 18px;
-            line-height: 1.8;
+            margin: 40px 0;
+            font-size: 20px;
+            line-height: 2;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            backdrop-filter: blur(10px);
         }
         
         .timestamp {
-            font-size: 14px;
-            opacity: 0.8;
+            font-size: 16px;
+            opacity: 0.9;
             margin-top: 30px;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🎉 УСПЕХ!</h1>
-        <div class="version">v2.0 GLASSMORPHISM EDITION</div>
-        <div class="status">✅ ВСЕ ОБНОВЛЕНИЯ ПРИМЕНЕНЫ!</div>
+        <div class="version">🚀 v2.0 GLASSMORPHISM ✨</div>
+        <div class="status">✅ ОБНОВЛЕНИЯ ПРИМЕНЕНЫ!</div>
         
         <div class="features">
             🌈 Vibrant gradient background<br>
             ✨ Glassmorphism effects<br>
             🎯 Complete personalization<br>
             📱 Modern mobile design<br>
-            🚀 Premium animations
+            🚀 Premium animations<br>
+            🎨 iOS/Material styling
         </div>
         
         <div class="timestamp">
             📅 Обновлено: 25 августа 2025<br>
-            🕒 Время: ${new Date().toLocaleTimeString('ru-RU')}
+            🕒 Время: <span id="current-time"></span><br>
+            🔄 Последний коммит: ce675b5
         </div>
     </div>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Update timestamp with current time
-            const timestampEl = document.querySelector('.timestamp');
-            timestampEl.innerHTML = `
-                📅 Обновлено: 25 августа 2025<br>
-                🕒 Время: ${new Date().toLocaleTimeString('ru-RU')}
-            `;
+            // Update timestamp
+            document.getElementById('current-time').textContent = new Date().toLocaleTimeString('ru-RU');
             
-            // Show alert after 500ms
+            // Show confirmation
             setTimeout(() => {
-                alert('🎉 GLASSMORPHISM DESIGN v2.0 ЗАГРУЖЕН УСПЕШНО!');
-            }, 500);
+                alert('🎉 GLASSMORPHISM DESIGN v2.0 УСПЕШНО ЗАГРУЖЕН!\n\n✅ Яркий градиентный фон\n✅ Glassmorphism эффекты\n✅ Современные анимации\n\nТеперь дизайн полностью изменен!');
+            }, 1000);
         });
     </script>
 </body>
