@@ -233,6 +233,44 @@ body::before {
 
 @media (max-width: 480px) {
   .form-grid { grid-template-columns: 1fr; }
+  
+  .modal-card.compact {
+    max-width: calc(100vw - 20px);
+    padding: 20px 16px;
+    margin: 10px;
+    max-height: 95vh;
+  }
+  
+  .modal-card.compact h2 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  
+  .modal-card.compact .goal-setup {
+    padding: 12px;
+    margin: 8px 0;
+  }
+  
+  .modal-card.compact .goal-input {
+    margin: 10px 0;
+  }
+}
+
+@media (max-height: 600px) {
+  .modal-card.compact {
+    padding: 16px 12px;
+    max-height: 95vh;
+  }
+  
+  .modal-card.compact .goal-input {
+    margin: 8px 0;
+  }
+  
+  .modal-card.compact .onb-tip {
+    padding: 8px;
+    margin: 8px 0;
+    font-size: 11px;
+  }
 }
 
 label {
@@ -400,6 +438,44 @@ input::placeholder {
   margin: 20px;
   box-shadow: var(--glass-shadow);
   animation: modalSlide 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-card.compact {
+  padding: 24px 20px;
+  max-width: 360px;
+}
+
+.modal-card.compact h2 {
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.modal-card.compact .goal-setup {
+  padding: 16px;
+  margin: 12px 0;
+}
+
+.modal-card.compact .goal-input {
+  margin: 12px 0;
+}
+
+.modal-card.compact .goal-input span {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.modal-card.compact input,
+.modal-card.compact select {
+  padding: 12px 16px;
+  font-size: 15px;
+}
+
+.modal-card.compact .onb-tip {
+  font-size: 12px;
+  padding: 12px;
+  margin: 12px 0;
 }
 
 @keyframes modalSlide {
@@ -821,42 +897,40 @@ input::placeholder {
   <body>
     <main class="container" id="app-root">
       <div id="onboarding-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onb-title">
-        <div class="modal-card">
-          <h2 id="onb-title">🎯 Настройте ваш персональный трекер</h2>
+        <div class="modal-card compact">
+          <h2 id="onb-title">🔥 GRIT Setup</h2>
           
           <div id="goal-setup" class="goal-setup">
             <label class="goal-input">
-              <span>🎯 Ваша главная цель:</span>
-              <input id="main-goal" type="text" placeholder="Например: Запустить свой стартап" maxlength="100" />
+              <span>🎯 Главная цель:</span>
+              <input id="main-goal" type="text" placeholder="Запустить стартап" maxlength="100" />
             </label>
             
             <label class="goal-input">
-              <span>Основные действия (что именно делаете):</span>
-              <input id="action1-name" type="text" placeholder="Например: звонки потенциальным клиентам" maxlength="50" />
+              <span>Основные действия:</span>
+              <input id="action1-name" type="text" placeholder="звонки клиентам" maxlength="50" />
             </label>
             
             <label class="goal-input">
-              <span>Вспомогательные действия (что помогает):</span>
-              <input id="action2-name" type="text" placeholder="Например: встречи с инвесторами" maxlength="50" />
+              <span>Вспомогательные:</span>
+              <input id="action2-name" type="text" placeholder="встречи с партнерами" maxlength="50" />
             </label>
             
             <label class="goal-input">
-              <span>Время глубокой работы:</span>
+              <span>Тип фокуса:</span>
               <select id="focus-type">
-                <option value="изучение">Изучение/обучение</option>
-                <option value="разработка">Разработка/создание</option>
-                <option value="планирование">Планирование/стратегия</option>
-                <option value="практика">Практика/тренировка</option>
                 <option value="работа">Фокусная работа</option>
+                <option value="изучение">Изучение</option>
+                <option value="разработка">Разработка</option>
+                <option value="планирование">Планирование</option>
+                <option value="практика">Практика</option>
               </select>
             </label>
           </div>
           
-          <ul class="onb-list">
-            <li><strong>Принцип</strong>: превращаем большую цель в маленькие ежедневные шаги</li>
-            <li><strong>3 типа действий</strong>: основные + вспомогательные + глубокое погружение</li>
-            <li><strong>Ритм</strong>: утром планируем → днем делаем → вечером анализируем</li>
-          </ul>
+          <div class="onb-tip">
+            💡 GRIT = страсть + настойчивость к долгосрочным целям
+          </div>
           
           <div class="onb-actions">
             <button id="onb-ok" class="btn primary">🚀 Начать</button>

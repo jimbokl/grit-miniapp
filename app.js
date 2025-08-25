@@ -227,15 +227,15 @@ const gritUI = {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML = `
-      <div class="modal-card">
-        <h2>✏️ Редактировать главную цель</h2>
+      <div class="modal-card compact">
+        <h2>✏️ Редактировать цель</h2>
         <div class="goal-setup">
           <label class="goal-input">
-            <span>🎯 Ваша главная цель:</span>
+            <span>🎯 Главная цель:</span>
             <input id="edit-main-goal" type="text" value="${gritData.profile.mainGoal.text}" maxlength="100" />
           </label>
           <label class="goal-input">
-            <span>📅 Целевая дата (опционально):</span>
+            <span>📅 Дедлайн:</span>
             <input id="edit-target-date" type="date" value="${gritData.profile.mainGoal.targetDate || ''}" />
           </label>
         </div>
@@ -248,6 +248,11 @@ const gritUI = {
     
     document.body.appendChild(modal);
     
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+    
     document.getElementById('save-goal').onclick = () => {
       const newGoal = document.getElementById('edit-main-goal').value.trim();
       const targetDate = document.getElementById('edit-target-date').value;
@@ -258,6 +263,9 @@ const gritUI = {
         gritData.save();
         this.updateHeader();
         showToast('🎯 Главная цель обновлена!', 'success');
+      } else {
+        showToast('🎯 Пожалуйста, укажите цель', 'warning');
+        return;
       }
       modal.remove();
     };
@@ -269,12 +277,12 @@ const gritUI = {
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.innerHTML = `
-      <div class="modal-card">
-        <h2>🎲 Добавить промежуточную цель</h2>
+      <div class="modal-card compact">
+        <h2>🎲 Новая цель</h2>
         <div class="goal-setup">
           <label class="goal-input">
-            <span>🎯 Описание цели:</span>
-            <input id="quarterly-goal-text" type="text" placeholder="Например: Привлечь 1000 пользователей" maxlength="100" />
+            <span>🎯 Описание:</span>
+            <input id="quarterly-goal-text" type="text" placeholder="Привлечь 1000 пользователей" maxlength="100" />
           </label>
           <label class="goal-input">
             <span>📅 Дедлайн:</span>
