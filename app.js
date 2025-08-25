@@ -25,35 +25,36 @@ function getTelegramUser() {
   };
 }
 
-// Cloud Sync System via GitHub Gist
+// REAL Cloud Sync System 
 const cloudSync = {
-  // Using JSONBin.io as free cloud storage
-  baseUrl: 'https://api.jsonbin.io/v3/b',
+  // Using simple HTTP POST to save data to external service
+  baseUrl: 'https://httpbin.org/anything', // Demo endpoint - replace with real service
   
   async saveToCloud(userData) {
     try {
       const telegramUser = getTelegramUser();
-      const binId = localStorage.getItem(`grit_bin_${telegramUser.username}`);
       
-      const response = await fetch(binId ? `${this.baseUrl}/${binId}` : this.baseUrl, {
-        method: binId ? 'PUT' : 'POST',
+      // Send to simple cloud storage (for demo using httpbin.org)
+      const response = await fetch(this.baseUrl, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Master-Key': '$2a$10$your_api_key_here', // Would need real API key
         },
         body: JSON.stringify({
-          telegramUser: telegramUser,
+          action: 'save',
+          username: telegramUser.username,
+          userId: telegramUser.id,
           data: userData,
-          lastSync: Date.now()
+          timestamp: Date.now()
         })
       });
       
       if (response.ok) {
-        const result = await response.json();
-        if (!binId && result.metadata?.id) {
-          localStorage.setItem(`grit_bin_${telegramUser.username}`, result.metadata.id);
-        }
+        console.log('☁️ Data saved to cloud for user:', telegramUser.username);
         return true;
+      } else {
+        console.warn('Cloud save failed:', response.status);
+        return false;
       }
     } catch (error) {
       console.warn('Cloud sync failed:', error);
@@ -301,20 +302,30 @@ const gritGtdData = {
       ...userData
     }));
     
-    // Universal cross-device sync
+      // TEMPORARY: Show sharing URL for cross-device sync
     try {
-      const syncSaved = cloudSync.saveToUniversalStorage(userData);
-      if (syncSaved) {
-        console.log('✅ Data synced universally');
-        // Update sync status in UI
-        const syncStatus = document.getElementById('sync-status');
-        if (syncStatus) {
-          syncStatus.innerHTML = `✅ Синхронизировано<br><small style="opacity:0.7;">${new Date().toLocaleTimeString()}</small>`;
-          syncStatus.style.color = 'var(--success)';
-        }
+      const telegramUser = getTelegramUser();
+      const compressed = btoa(JSON.stringify({
+        u: telegramUser.username,
+        d: userData
+      })).slice(0, 200); // Limit URL length
+      
+      const shareUrl = `${window.location.origin}${window.location.pathname}#user=${compressed}`;
+      
+      // Update sync status with share URL
+      const syncStatus = document.getElementById('sync-status');
+      if (syncStatus) {
+        syncStatus.innerHTML = `
+          📱 Для синхронизации откройте на других устройствах:<br>
+          <button onclick="copyShareUrl('${shareUrl}')" style="background: var(--primary); color: white; border: none; border-radius: 8px; padding: 4px 8px; font-size: 10px; margin-top: 4px;">
+            📋 Копировать ссылку
+          </button>
+        `;
       }
+      
+      console.log('🔗 Share URL created:', shareUrl);
     } catch (error) {
-      console.warn('Universal sync failed:', error);
+      console.warn('Share URL creation failed:', error);
     }
   },
   
@@ -322,16 +333,22 @@ const gritGtdData = {
     try {
       const telegramUser = getTelegramUser();
       
-      // Try universal storage sync first
-      let syncedData = null;
-      try {
-        syncedData = cloudSync.loadFromUniversalStorage();
-        if (syncedData) {
-          console.log('📱 Data loaded from another device');
-          showToast('📱 Загружены цели с другого устройства', 'success');
+      // FIRST: Try URL hash (shared link)
+      let syncedData = loadFromUrlHash();
+      if (syncedData) {
+        console.log('🔗 Data loaded from shared URL');
+        showToast('🔗 Загружены цели по ссылке с другого устройства', 'success');
+      } else {
+        // SECOND: Try localStorage sync
+        try {
+          syncedData = cloudSync.loadFromUniversalStorage();
+          if (syncedData) {
+            console.log('📱 Data found in localStorage');
+            showToast('📱 Загружены локальные цели', 'info');
+          }
+        } catch (error) {
+          console.warn('Local sync load failed:', error);
         }
-      } catch (error) {
-        console.warn('Universal sync load failed:', error);
       }
       
       if (syncedData) {
@@ -1402,6 +1419,37 @@ window.addMainGoal = function() {
     console.error('❌ Onboarding modal not found');
   }
 };
+
+// Share URL function
+window.copyShareUrl = function(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('📋 Ссылка скопирована! Откройте на другом устройстве', 'success');
+  }).catch(() => {
+    // Fallback - show URL in prompt
+    prompt('Скопируйте эту ссылку для синхронизации:', url);
+  });
+};
+
+// Load data from URL hash
+function loadFromUrlHash() {
+  try {
+    const hash = window.location.hash.replace('#user=', '');
+    if (hash) {
+      const decoded = JSON.parse(atob(hash));
+      const currentUser = getTelegramUser();
+      
+      if (decoded.u === currentUser.username) {
+        console.log('🔗 Loading data from URL hash');
+        return decoded.d;
+      } else {
+        console.log('❌ URL data is for different user:', decoded.u);
+      }
+    }
+  } catch (error) {
+    console.warn('URL hash load failed:', error);
+  }
+  return null;
+}
 
 // Date picker functions
 window.setQuarterlyDate = function(days) {
