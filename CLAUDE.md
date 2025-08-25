@@ -1,6 +1,6 @@
-## CLAUDE: Grit Mini App Development Guidelines
+## CLAUDE: Personal Goal Tracker Development Guidelines
 
-This document defines the development standards for the Grit Mini App project (Telegram WebApp). Follow these principles for all development work.
+This document defines the development standards for the Personal Goal Tracker project (Telegram WebApp). This is a fully personalized goal tracking system that adapts to any user's objectives and terminology.
 
 ### 1) Technology Stack
 - **Frontend**: Vanilla JavaScript ES6+, HTML5, CSS3 (no frameworks - keep it lightweight)
@@ -24,13 +24,26 @@ This document defines the development standards for the Grit Mini App project (T
 - `config/` - Environment configuration
 - `db/` - Database migrations (Alembic) and schemas
 
-### 3) Core Business Rules
-- **Daily Goals**: Three core metrics - `целевые действия` (target actions), `встречи/демо` (meetings/demos), `фокус` (focus minutes)
-- **Personalization**: Users define their main goal and what counts as "target actions" for them
-- **Perfect Day**: Achievement of all three daily goals
-- **Minimum Day**: Manual flag to maintain streak without breaking chain
-- **User Timezone**: Per-user timezone support, week runs Monday-Sunday
-- **Data Flow**: Goal setup → Morning planning → Day tracking → Evening review
+### 3) Core Business Rules - Complete Personalization System
+- **Universal Goal Structure**: Any goal → 3 measurable daily actions
+  - **Primary Actions**: Core activities that directly achieve the goal (user-defined)
+  - **Supporting Actions**: Auxiliary activities that help the goal (user-defined) 
+  - **Focus Time**: Deep work time in minutes (always in minutes, but user defines type)
+
+- **Full Personalization**: 
+  - User sets their main goal (e.g., "Launch a startup", "Learn French", "Get fit")
+  - User defines what their "primary actions" are (e.g., "client calls", "vocabulary practice", "workouts")
+  - User defines what their "supporting actions" are (e.g., "investor meetings", "conversation practice", "meal prep")
+  - User selects focus type (study/development/planning/practice/work)
+
+- **Dynamic Interface**: All UI elements change based on user's terminology
+- **Perfect Day**: Achievement of all three personalized daily goals
+- **Data Flow**: Initial setup → Morning planning → Day tracking → Evening review
+
+**Example Configurations:**
+- **Entrepreneur**: Goal: "Launch SaaS" | Primary: "Customer calls" | Supporting: "Investor meetings" | Focus: "Development"
+- **Student**: Goal: "Pass certification" | Primary: "Practice problems" | Supporting: "Study sessions" | Focus: "Learning"
+- **Athlete**: Goal: "Run marathon" | Primary: "Training runs" | Supporting: "Strength workouts" | Focus: "Planning"
 
 ### 4) Code Quality Standards
 **Frontend:**
