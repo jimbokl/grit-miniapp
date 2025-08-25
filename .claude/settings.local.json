@@ -9,7 +9,9 @@
       "Bash(git add:*)",
       "Bash(git push:*)",
       "Bash(git stash:*)",
-      "WebFetch(domain:jimbokl.github.io)"
+      "WebFetch(domain:jimbokl.github.io)",
+      "Bash(npm install:*)",
+      "WebFetch(domain:www.figma.com)"
     ],
     "deny": [],
     "ask": []
