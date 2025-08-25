@@ -94,8 +94,22 @@ body::before {
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  margin-top: 12px;
+  margin: 8px 4px;
   animation: badgePulse 3s infinite;
+}
+
+.commit-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--success-gradient);
+  color: white;
+  border-radius: 50px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 8px 4px;
+  opacity: 0.8;
+  font-family: 'Monaco', 'Consolas', monospace;
 }
 
 @keyframes badgePulse {
@@ -486,6 +500,7 @@ input::placeholder {
       <header class="header">
         <h1>🎯 Персональный Трекер</h1>
         <div class="version-badge">v2.0 Glassmorphism ✨</div>
+        <div class="commit-badge">Commit: 6019290</div>
         <p class="subtitle" id="goal-subtitle">Универсальный трекер для любых целей</p>
       </header>
 
@@ -560,6 +575,17 @@ input::placeholder {
           <button type="submit" class="btn success">✅ Добавить</button>
         </form>
       </section>
+      
+      <footer style="text-align: center; padding: 20px; margin-top: 40px;">
+        <div style="background: var(--bg-glass); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 16px; padding: 16px; opacity: 0.8;">
+          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+            🚀 Personal Goal Tracker v2.0 | Glassmorphism Edition
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); font-family: Monaco, Consolas, monospace;">
+            📅 25.08.2025 | 🔄 Commit: 6019290 | ⚡ GitHub Actions
+          </div>
+        </div>
+      </footer>
     </main>
 
     <script src="./app.js"></script>
