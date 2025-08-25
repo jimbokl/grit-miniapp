@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🎉 TEST - Glassmorphism v2.0</title>
+    <style>
+        body { 
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4) !important;
+            color: white !important;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 100px 50px;
+            min-height: 100vh;
+        }
+        h1 { 
+            font-size: 60px; 
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.8);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        .status {
+            font-size: 24px;
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body>
+    <h1>🎉 РАБОТАЕТ!</h1>
+    <div class="status">✅ GitHub Pages обновился!</div>
+    <div class="status">🎨 Glassmorphism дизайн применен!</div>
+    <div class="status">📅 Время: <span id="time"></span></div>
+    
+    <script>
+        document.getElementById('time').textContent = new Date().toLocaleString('ru-RU');
+        alert('🚀 ТЕСТ УСПЕШЕН! GitHub Pages работает!');
+    </script>
+</body>
+</html>
