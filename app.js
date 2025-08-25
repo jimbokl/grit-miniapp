@@ -70,16 +70,20 @@ function openInTelegram() {
   tg.expand?.();
 }
 
-// User settings and personalization
+// Comprehensive user personalization system
 const userSettings = {
   mainGoal: '',
-  actionType: '',
+  action1Name: '',
+  action2Name: '',
+  focusType: 'работа',
   
   save() {
     try {
       localStorage.setItem('grit_user_settings', JSON.stringify({
         mainGoal: this.mainGoal,
-        actionType: this.actionType
+        action1Name: this.action1Name,
+        action2Name: this.action2Name,
+        focusType: this.focusType
       }));
     } catch (e) {
       console.warn('Could not save user settings:', e);
@@ -92,7 +96,9 @@ const userSettings = {
       if (stored) {
         const data = JSON.parse(stored);
         this.mainGoal = data.mainGoal || '';
-        this.actionType = data.actionType || '';
+        this.action1Name = data.action1Name || '';
+        this.action2Name = data.action2Name || '';
+        this.focusType = data.focusType || 'работа';
       }
     } catch (e) {
       console.warn('Could not load user settings:', e);
@@ -100,22 +106,56 @@ const userSettings = {
   },
   
   updateInterface() {
-    const actionLabels = document.querySelectorAll('span');
-    actionLabels.forEach(label => {
-      if (label.textContent.includes('Целевые действия')) {
-        if (this.actionType) {
-          label.textContent = label.textContent.replace('Целевые действия', this.actionType);
+    // Update goal subtitle
+    const subtitle = document.getElementById('goal-subtitle');
+    if (subtitle && this.mainGoal) {
+      subtitle.textContent = `🎯 ${this.mainGoal}`;
+    }
+    
+    // Update all action labels dynamically
+    const updateLabel = (elementId, fallback, name) => {
+      const element = document.getElementById(elementId);
+      if (element) {
+        const displayName = name || fallback;
+        if (elementId.includes('plan')) {
+          element.textContent = `${displayName} (шт)`;
+        } else if (elementId.includes('fact')) {
+          element.textContent = `${displayName} +`;
+        } else {
+          element.textContent = displayName;
         }
       }
-    });
+    };
     
-    // Update subtitle if main goal is set
-    if (this.mainGoal) {
-      const subtitle = document.querySelector('.subtitle');
-      if (subtitle) {
-        subtitle.textContent = `Цель: ${this.mainGoal}`;
-      }
+    // Update action1 labels
+    updateLabel('plan-action1-label', 'Основные действия', this.action1Name);
+    updateLabel('fact-action1-label', 'Основные действия', this.action1Name);
+    updateLabel('progress-action1-label', 'Основные действия', this.action1Name);
+    
+    // Update action2 labels  
+    updateLabel('plan-action2-label', 'Вспомогательные действия', this.action2Name);
+    updateLabel('fact-action2-label', 'Вспомогательные действия', this.action2Name);
+    updateLabel('progress-action2-label', 'Вспомогательные действия', this.action2Name);
+    
+    // Update focus labels
+    const focusText = `${this.focusType.charAt(0).toUpperCase()}${this.focusType.slice(1)}`;
+    updateLabel('plan-focus-label', 'Время фокуса', focusText);
+    updateLabel('fact-focus-label', 'Время фокуса', focusText);
+    updateLabel('progress-focus-label', 'Время фокуса', focusText);
+    
+    // Update focus label specifically for fact form
+    const factFocusLabel = document.getElementById('fact-focus-label');
+    if (factFocusLabel) {
+      factFocusLabel.textContent = `${focusText} + (мин)`;
     }
+  },
+  
+  getDisplayNames() {
+    return {
+      action1: this.action1Name || 'Основные действия',
+      action2: this.action2Name || 'Вспомогательные действия', 
+      focus: this.focusType.charAt(0).toUpperCase() + this.focusType.slice(1)
+    };
   }
 };
 
@@ -334,34 +374,54 @@ function onReady() {
     if (userSettings.mainGoal) {
       document.getElementById('main-goal').value = userSettings.mainGoal;
     }
-    if (userSettings.actionType) {
-      document.getElementById('action-type').value = userSettings.actionType;
+    if (userSettings.action1Name) {
+      document.getElementById('action1-name').value = userSettings.action1Name;
+    }
+    if (userSettings.action2Name) {
+      document.getElementById('action2-name').value = userSettings.action2Name;
+    }
+    if (userSettings.focusType) {
+      document.getElementById('focus-type').value = userSettings.focusType;
     }
   }
   
   onbOk?.addEventListener('click', () => {
-    // Save user settings
+    // Save comprehensive user settings
     const mainGoal = document.getElementById('main-goal').value.trim();
-    const actionType = document.getElementById('action-type').value.trim();
+    const action1Name = document.getElementById('action1-name').value.trim();
+    const action2Name = document.getElementById('action2-name').value.trim();
+    const focusType = document.getElementById('focus-type').value;
     
     if (!mainGoal) {
-      showToast('Пожалуйста, укажите вашу главную цель', 'warning');
+      showToast('🎯 Пожалуйста, укажите вашу главную цель', 'warning');
+      return;
+    }
+    
+    if (!action1Name) {
+      showToast('📊 Пожалуйста, укажите основные действия', 'warning');
       return;
     }
     
     userSettings.mainGoal = mainGoal;
-    userSettings.actionType = actionType || 'Целевые действия';
+    userSettings.action1Name = action1Name;
+    userSettings.action2Name = action2Name || 'Вспомогательные действия';
+    userSettings.focusType = focusType;
     userSettings.save();
     userSettings.updateInterface();
     
     localStorage.setItem(ONB_KEY, '1');
     modal?.classList.add('hidden');
-    showToast('Настройки сохранены!', 'success');
+    showToast('🎉 Ваш персональный трекер настроен!', 'success');
+    
+    // Show a helpful tip
+    setTimeout(() => {
+      showToast('💡 Начните с планирования вашего дня', 'info');
+    }, 2000);
   });
   
   modal?.querySelector('[data-onb-close]')?.addEventListener('click', () => {
     if (!userSettings.mainGoal) {
-      showToast('Пожалуйста, настройте вашу цель', 'warning');
+      showToast('🎯 Пожалуйста, сначала настройте цель', 'warning');
       return;
     }
     localStorage.setItem(ONB_KEY, '1');
@@ -395,7 +455,8 @@ function onReady() {
     
     try {
       await postJSON('/api/plan/today', { plan, init: getInitDataUnsafe() });
-      showToast('План сохранён', 'success');
+      const displayNames = userSettings.getDisplayNames();
+      showToast(`📋 План сохранен: ${displayNames.action1} ${plan.touches}, ${displayNames.action2} ${plan.demos}, ${displayNames.focus} ${plan.focus_minutes}мин`, 'success');
       tg?.HapticFeedback?.notificationOccurred('success');
       
       // Update progress tracking with new goals
@@ -409,7 +470,7 @@ function onReady() {
       
     } catch (err) {
       console.error(err);
-      showToast('Ошибка: не удалось сохранить план', 'error');
+      showToast('❌ Ошибка: не удалось сохранить план', 'error');
       tg?.HapticFeedback?.notificationOccurred('error');
     } finally {
       setButtonLoading(submitBtn, false);
@@ -443,7 +504,12 @@ function onReady() {
     
     try {
       await postJSON('/api/fact/increment', { inc, init: getInitDataUnsafe() });
-      showToast('Факт добавлен', 'success');
+      const displayNames = userSettings.getDisplayNames();
+      const parts = [];
+      if (inc.touches > 0) parts.push(`${displayNames.action1} +${inc.touches}`);
+      if (inc.demos > 0) parts.push(`${displayNames.action2} +${inc.demos}`);
+      if (inc.focus_minutes > 0) parts.push(`${displayNames.focus} +${inc.focus_minutes}мин`);
+      showToast(`✅ Добавлено: ${parts.join(', ')}`, 'success');
       tg?.HapticFeedback?.notificationOccurred('success');
       
       // Update progress tracking with increments
@@ -455,7 +521,7 @@ function onReady() {
       });
     } catch (err) {
       console.error(err);
-      showToast('Ошибка: не удалось добавить факт', 'error');
+      showToast('❌ Ошибка: не удалось добавить выполненное', 'error');
       tg?.HapticFeedback?.notificationOccurred('error');
     } finally {
       setButtonLoading(submitBtn, false);

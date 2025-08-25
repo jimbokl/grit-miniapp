@@ -13,26 +13,48 @@
       <div id="onboarding-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onb-title">
         <div class="modal-backdrop" data-onb-close></div>
         <div class="modal-card">
-          <h2 id="onb-title">Настройка вашей цели</h2>
+          <h2 id="onb-title">Настройте ваш персональный трекер</h2>
           
           <div id="goal-setup" class="goal-setup">
             <label class="goal-input">
-              <span>Ваша главная цель:</span>
-              <input id="main-goal" type="text" placeholder="например: Запустить свой бизнес" maxlength="100" />
+              <span>🎯 Ваша главная цель:</span>
+              <input id="main-goal" type="text" placeholder="Например: Запустить свой стартап" maxlength="100" />
             </label>
-            <label class="goal-input">
-              <span>Что считаем целевыми действиями:</span>
-              <input id="action-type" type="text" placeholder="например: звонки клиентам, посты в соцсетях" maxlength="100" />
-            </label>
+            
+            <div class="metrics-setup">
+              <h3>📊 Настройте ваши ежедневные метрики:</h3>
+              
+              <label class="goal-input">
+                <span>Основные действия (что именно делаете):</span>
+                <input id="action1-name" type="text" placeholder="Например: звонки потенциальным клиентам" maxlength="50" />
+                <small>Единица измерения: штук в день</small>
+              </label>
+              
+              <label class="goal-input">
+                <span>Вспомогательные действия (что помогает):</span>
+                <input id="action2-name" type="text" placeholder="Например: встречи с инвесторами" maxlength="50" />
+                <small>Единица измерения: штук в день</small>
+              </label>
+              
+              <label class="goal-input">
+                <span>Время глубокой работы (всегда в минутах):</span>
+                <select id="focus-type">
+                  <option value="изучение">Изучение/обучение</option>
+                  <option value="разработка">Разработка/создание</option>
+                  <option value="планирование">Планирование/стратегия</option>
+                  <option value="практика">Практика/тренировка</option>
+                  <option value="работа">Фокусная работа</option>
+                </select>
+                <small>Единица измерения: минут в день</small>
+              </label>
+            </div>
           </div>
           
           <ul class="onb-list">
-            <li><strong>Что такое Grit</strong>: настойчивость + страсть к долгосрочной цели; держим ритм даже когда сложно.</li>
-            <li><strong>Целевые действия</strong>: любые конкретные шаги, которые приближают к вашей главной цели.</li>
-            <li><strong>Зачем этот бот</strong>: держать ритм. Утром — план, днём — факт, вечером — сверка.</li>
-            <li><strong>Утро</strong>: внесите план — действия, встречи, фокус (мин).</li>
-            <li><strong>Днём</strong>: отмечайте факты быстрыми инпутами ниже.</li>
-            <li><strong>Вечер</strong>: сверка обещано/сделано — цель: идеальный день.</li>
+            <li><strong>Принцип работы</strong>: превращаем большую цель в маленькие ежедневные шаги</li>
+            <li><strong>3 типа действий</strong>: основные + вспомогательные + глубокое погружение</li>
+            <li><strong>Ритм</strong>: утром планируем → днем делаем → вечером анализируем</li>
+            <li><strong>Результат</strong>: через месяц-другой вы удивитесь своему прогрессу!</li>
           </ul>
           <div class="onb-actions">
             <button id="onb-ok" class="btn primary">Понятно</button>
@@ -41,35 +63,35 @@
         </div>
       </div>
       <header class="header">
-        <h1>Grit — план и факт</h1>
-        <p class="subtitle">Ежедневные метрики: целевые действия, встречи, фокус</p>
+        <h1>🎯 Ваш персональный трекер</h1>
+        <p class="subtitle" id="goal-subtitle">Настройте свою цель в первом запуске</p>
       </header>
 
       <section class="card">
-        <h2>План на сегодня</h2>
+        <h2>📋 План на сегодня</h2>
         <form id="plan-form" class="form-grid" autocomplete="off">
           <label>
-            <span>Целевые действия (шт)</span>
+            <span id="plan-action1-label">Основные действия (шт)</span>
             <input id="plan-touches" type="number" min="0" inputmode="numeric" placeholder="например, 10" />
           </label>
           <label>
-            <span>Встречи/демо (шт)</span>
+            <span id="plan-action2-label">Вспомогательные действия (шт)</span>
             <input id="plan-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
           </label>
           <label class="full">
-            <span>Фокус (мин)</span>
+            <span id="plan-focus-label">Время фокуса (мин)</span>
             <input id="plan-focus" type="number" min="0" inputmode="numeric" placeholder="например, 90" />
           </label>
-          <button type="submit" class="btn primary">Отправить план</button>
+          <button type="submit" class="btn primary">📝 Сохранить план</button>
         </form>
       </section>
 
       <section class="card progress-card">
-        <h2>Прогресс за сегодня</h2>
+        <h2>📊 Прогресс за сегодня</h2>
         <div class="progress-grid">
           <div class="progress-item">
             <div class="progress-label">
-              <span>Целевые действия</span>
+              <span id="progress-action1-label">Основные действия</span>
               <span id="touches-progress">0 / 0</span>
             </div>
             <div class="progress-bar">
@@ -78,7 +100,7 @@
           </div>
           <div class="progress-item">
             <div class="progress-label">
-              <span>Встречи/демо</span>
+              <span id="progress-action2-label">Вспомогательные действия</span>
               <span id="demos-progress">0 / 0</span>
             </div>
             <div class="progress-bar">
@@ -87,7 +109,7 @@
           </div>
           <div class="progress-item">
             <div class="progress-label">
-              <span>Фокус</span>
+              <span id="progress-focus-label">Время фокуса</span>
               <span id="focus-progress">0 / 0 мин</span>
             </div>
             <div class="progress-bar">
@@ -96,26 +118,26 @@
           </div>
         </div>
         <div id="perfect-day-indicator" class="perfect-day hidden">
-          🎯 Идеальный день!
+          🎯 Идеальный день! Все цели достигнуты!
         </div>
       </section>
 
       <section class="card">
-        <h2>Факт — быстрые отметки</h2>
+        <h2>✅ Отметить выполненное</h2>
         <form id="fact-form" class="form-grid" autocomplete="off">
           <label>
-            <span>Целевые действия +</span>
+            <span id="fact-action1-label">Основные действия +</span>
             <input id="fact-touches" type="number" min="0" inputmode="numeric" placeholder="например, 5" />
           </label>
           <label>
-            <span>Встречи/демо +</span>
+            <span id="fact-action2-label">Вспомогательные действия +</span>
             <input id="fact-demos" type="number" min="0" inputmode="numeric" placeholder="например, 1" />
           </label>
           <label class="full">
-            <span>Фокус + (мин)</span>
+            <span id="fact-focus-label">Время фокуса + (мин)</span>
             <input id="fact-focus" type="number" min="0" inputmode="numeric" placeholder="например, 30" />
           </label>
-          <button type="submit" class="btn success">Добавить факт</button>
+          <button type="submit" class="btn success">✅ Добавить выполненное</button>
         </form>
       </section>
 
