@@ -112,6 +112,82 @@ body::before {
   font-family: 'Monaco', 'Consolas', monospace;
 }
 
+.grit-score {
+  margin: 16px 0;
+  padding: 12px 20px;
+  background: var(--bg-elevated);
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.grit-score #score-value {
+  color: var(--primary);
+  font-size: 24px;
+  margin-left: 8px;
+}
+
+.main-goal-display {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--bg-elevated);
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.main-goal-display #goal-text {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.edit-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.edit-btn:hover {
+  transform: scale(1.1);
+  background: var(--primary-light);
+}
+
+.streak-display {
+  margin: 12px 0;
+  padding: 12px;
+  background: rgba(38, 222, 129, 0.1);
+  border: 1px solid rgba(38, 222, 129, 0.3);
+  border-radius: 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.streak-display #streak-count {
+  color: var(--success);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.streak-display #grit-level {
+  color: var(--success);
+  font-weight: 700;
+}
+
 @keyframes badgePulse {
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.05); opacity: 1; }
@@ -449,6 +525,101 @@ input::placeholder {
   border-color: var(--error) !important;
   box-shadow: 0 0 0 3px rgba(255, 82, 82, 0.2) !important;
 }
+
+/* Quarterly Goals Styles */
+.quarterly-goal-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 12px 0;
+  transition: all 0.3s ease;
+}
+
+.quarterly-goal-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+}
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.goal-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.days-left {
+  font-size: 12px;
+  padding: 4px 8px;
+  background: var(--success);
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.days-left.overdue {
+  background: var(--error);
+}
+
+.goal-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.goal-progress .progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+
+.goal-progress .progress-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 35px;
+}
+
+.goal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.mini-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--primary);
+  color: white;
+}
+
+.mini-btn:hover {
+  transform: translateY(-1px) scale(1.05);
+}
+
+.mini-btn.delete {
+  background: var(--error);
+}
+
+.no-goals {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 20px;
+}
     </style>
   </head>
   <body>
@@ -498,10 +669,17 @@ input::placeholder {
       </div>
 
       <header class="header">
-        <h1>🎯 Персональный Трекер</h1>
+        <h1>🔥 GRIT TRACKER</h1>
         <div class="version-badge">v2.0 Glassmorphism ✨</div>
         <div class="commit-badge">Commit: 6019290</div>
-        <p class="subtitle" id="goal-subtitle">Универсальный трекер для любых целей</p>
+        <div class="grit-score" id="grit-score">GRIT Score: <span id="score-value">0</span></div>
+        <div class="main-goal-display" id="main-goal-display">
+          <span id="goal-text">Настройте вашу главную цель</span>
+          <button id="edit-goal-btn" class="edit-btn">✏️</button>
+        </div>
+        <div class="streak-display" id="streak-display">
+          🔥 Streak: <span id="streak-count">0</span> дней | Уровень: <span id="grit-level">Новичок</span>
+        </div>
       </header>
 
       <section class="card">
@@ -521,6 +699,18 @@ input::placeholder {
           </label>
           <button type="submit" class="btn primary">💾 Сохранить план</button>
         </form>
+      </section>
+
+      <section class="card">
+        <h2>🎲 Промежуточные цели</h2>
+        <div id="quarterly-goals">
+          <div class="quarterly-goal-item" style="border: 2px dashed var(--glass-border); padding: 20px; text-align: center; opacity: 0.7;">
+            <span>+ Добавить промежуточную цель</span>
+          </div>
+        </div>
+        <button id="add-quarterly-goal" class="btn primary" style="margin-top: 16px; width: 100%;">
+          ➕ Добавить цель на квартал
+        </button>
       </section>
 
       <section class="card">
