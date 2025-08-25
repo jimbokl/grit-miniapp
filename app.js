@@ -1,7 +1,7 @@
 const tg = window.Telegram?.WebApp;
 
-// GRIT Data Management
-const gritData = {
+// GRIT + GTD Super System
+const gritGtdData = {
   profile: {
     id: '',
     createdAt: null,
@@ -26,15 +26,117 @@ const gritData = {
     }
   },
   
+  // GTD System
+  gtd: {
+    inbox: [],           // Raw captured items
+    nextActions: [],     // Clarified actionable items  
+    projects: [],        // Multi-step outcomes
+    waiting: [],         // Delegated items
+    someday: [],         // Future considerations
+    contexts: ['📱 Телефон', '💻 Компьютер', '🏠 Дома', '🏢 Офис', '🚗 В дороге', '🧠 Обдумать'],
+    weeklyReview: {
+      lastReview: null,
+      completed: 0,
+      insights: []
+    }
+  },
+  
   dailyLogs: [],
   analytics: {
     patterns: {},
     trends: {}
   },
   
+  // GTD Methods
+  captureItem(text) {
+    const item = {
+      id: Date.now().toString(),
+      text: text.trim(),
+      captured: new Date().toISOString(),
+      processed: false
+    };
+    this.gtd.inbox.push(item);
+    this.save();
+    return item;
+  },
+  
+  clarifyItem(itemId, clarification) {
+    const item = this.gtd.inbox.find(i => i.id === itemId);
+    if (!item) return null;
+    
+    const { action, context, priority, energy } = clarification;
+    
+    if (action === 'delete') {
+      this.gtd.inbox = this.gtd.inbox.filter(i => i.id !== itemId);
+    } else if (action === 'next') {
+      const nextAction = {
+        id: item.id,
+        text: item.text,
+        context: context || '🧠 Обдумать',
+        priority: priority || 'B',
+        energy: energy || 'medium',
+        createdAt: new Date().toISOString(),
+        linkedGoal: null
+      };
+      this.gtd.nextActions.push(nextAction);
+      this.gtd.inbox = this.gtd.inbox.filter(i => i.id !== itemId);
+    } else if (action === 'project') {
+      const project = {
+        id: item.id,
+        title: item.text,
+        actions: [],
+        context: context || '🧠 Обдумать',
+        priority: priority || 'B',
+        createdAt: new Date().toISOString()
+      };
+      this.gtd.projects.push(project);
+      this.gtd.inbox = this.gtd.inbox.filter(i => i.id !== itemId);
+    } else if (action === 'someday') {
+      const somedayItem = {
+        id: item.id,
+        text: item.text,
+        createdAt: new Date().toISOString()
+      };
+      this.gtd.someday.push(somedayItem);
+      this.gtd.inbox = this.gtd.inbox.filter(i => i.id !== itemId);
+    }
+    
+    this.save();
+    return true;
+  },
+  
+  completeAction(actionId) {
+    const action = this.gtd.nextActions.find(a => a.id === actionId);
+    if (action) {
+      action.completedAt = new Date().toISOString();
+      this.gtd.nextActions = this.gtd.nextActions.filter(a => a.id !== actionId);
+      
+      // Add to GRIT daily log as activity
+      const today = new Date().toDateString();
+      let todayLog = this.dailyLogs.find(log => log.date === today);
+      if (!todayLog) {
+        todayLog = {
+          date: today,
+          actions: { primary: 0, secondary: 0, focusMinutes: 0 },
+          gtdActions: 0,
+          mood: 5,
+          obstacles: '',
+          reflection: ''
+        };
+        this.dailyLogs.push(todayLog);
+      }
+      
+      todayLog.gtdActions = (todayLog.gtdActions || 0) + 1;
+      this.save();
+      return true;
+    }
+    return false;
+  },
+
   save() {
-    localStorage.setItem('grit_data', JSON.stringify({
+    localStorage.setItem('grit_gtd_data', JSON.stringify({
       profile: this.profile,
+      gtd: this.gtd,
       dailyLogs: this.dailyLogs,
       analytics: this.analytics,
       lastSaved: Date.now()
@@ -43,15 +145,27 @@ const gritData = {
   
   load() {
     try {
-      const stored = localStorage.getItem('grit_data');
+      // Try new GRIT+GTD format first
+      let stored = localStorage.getItem('grit_gtd_data');
+      if (!stored) {
+        // Fallback to old GRIT format and migrate
+        stored = localStorage.getItem('grit_data');
+      }
+      
       if (stored) {
         const data = JSON.parse(stored);
         this.profile = { ...this.profile, ...data.profile };
+        this.gtd = { ...this.gtd, ...(data.gtd || {}) };
         this.dailyLogs = data.dailyLogs || [];
         this.analytics = data.analytics || { patterns: {}, trends: {} };
+        
+        // Migrate old data if needed
+        if (!data.gtd) {
+          this.save(); // Save in new format
+        }
       }
     } catch (e) {
-      console.warn('Could not load GRIT data:', e);
+      console.warn('Could not load GRIT+GTD data:', e);
     }
   },
   
@@ -199,12 +313,12 @@ const gritData = {
   }
 };
 
-// UI Management
-const gritUI = {
+// GRIT + GTD UI Management
+const gritGtdUI = {
   updateHeader() {
     try {
-      const score = gritData.calculateGritScore();
-      const level = gritData.getGritLevel(score);
+      const score = gritGtdData.calculateGritScore();
+      const level = gritGtdData.getGritLevel(score);
       
       const scoreEl = document.getElementById('score-value');
       const levelEl = document.getElementById('grit-level');
@@ -213,13 +327,125 @@ const gritUI = {
       
       if (scoreEl) scoreEl.textContent = score;
       if (levelEl) levelEl.textContent = level;
-      if (streakEl) streakEl.textContent = gritData.profile.streak?.current || 0;
+      if (streakEl) streakEl.textContent = gritGtdData.profile.streak?.current || 0;
       
-      if (goalTextEl && gritData.profile.mainGoal?.text) {
-        goalTextEl.textContent = gritData.profile.mainGoal.text;
+      if (goalTextEl && gritGtdData.profile.mainGoal?.text) {
+        goalTextEl.textContent = gritGtdData.profile.mainGoal.text;
       }
     } catch (error) {
       console.warn('Error updating header:', error);
+    }
+  },
+  
+  // GTD UI Methods
+  renderInbox() {
+    const container = document.getElementById('inbox-items');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    gritGtdData.gtd.inbox.forEach(item => {
+      const itemEl = document.createElement('div');
+      itemEl.className = 'inbox-item';
+      itemEl.innerHTML = `
+        <div class="item-text">${item.text}</div>
+        <div class="item-actions">
+          <button onclick="gritGtdUI.showClarifyModal('${item.id}')" class="mini-btn">🔍 Clarify</button>
+          <button onclick="gritGtdUI.deleteInboxItem('${item.id}')" class="mini-btn delete">🗑️</button>
+        </div>
+      `;
+      container.appendChild(itemEl);
+    });
+    
+    if (gritGtdData.gtd.inbox.length === 0) {
+      container.innerHTML = '<div class="empty-inbox">Inbox пуст - отличная работа! 🎯</div>';
+    }
+  },
+  
+  renderNextActions() {
+    const container = document.getElementById('next-actions');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    gritGtdData.gtd.nextActions.forEach(action => {
+      const actionEl = document.createElement('div');
+      actionEl.className = `action-item priority-${action.priority.toLowerCase()}`;
+      actionEl.innerHTML = `
+        <div class="item-text">${action.text}</div>
+        <div class="item-meta">
+          <span class="context-badge energy-${action.energy}">${action.context}</span>
+        </div>
+        <div class="item-actions">
+          <button onclick="gritGtdUI.completeAction('${action.id}')" class="mini-btn">✅ Done</button>
+        </div>
+      `;
+      container.appendChild(actionEl);
+    });
+    
+    if (gritGtdData.gtd.nextActions.length === 0) {
+      container.innerHTML = '<div class="empty-actions">Пока нет next actions. Обработайте Inbox!</div>';
+    }
+  },
+  
+  showClarifyModal(itemId) {
+    const item = gritGtdData.gtd.inbox.find(i => i.id === itemId);
+    if (!item) return;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-card compact">
+        <h2>🔍 Clarify Item</h2>
+        <div class="clarify-item">"${item.text}"</div>
+        <div class="clarify-options">
+          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'next')" class="btn primary">⚡ Next Action</button>
+          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'project')" class="btn primary">📋 Project</button>
+          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'someday')" class="btn ghost">🔮 Someday</button>
+          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'delete')" class="btn ghost">🗑️ Delete</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+  },
+  
+  clarifyAs(itemId, action) {
+    gritGtdData.clarifyItem(itemId, { action });
+    this.renderInbox();
+    this.renderNextActions();
+    
+    const actionNames = {
+      'next': '⚡ Next Action',
+      'project': '📋 Project', 
+      'someday': '🔮 Someday',
+      'delete': '🗑️ Deleted'
+    };
+    
+    showToast(`📝 Item clarified as ${actionNames[action]}`, 'success');
+    
+    // Close modal
+    document.querySelector('.modal')?.remove();
+  },
+  
+  deleteInboxItem(itemId) {
+    gritGtdData.gtd.inbox = gritGtdData.gtd.inbox.filter(i => i.id !== itemId);
+    gritGtdData.save();
+    this.renderInbox();
+    showToast('🗑️ Item deleted', 'warning');
+  },
+  
+  completeAction(actionId) {
+    const success = gritGtdData.completeAction(actionId);
+    if (success) {
+      this.renderNextActions();
+      this.updateHeader();
+      showToast('✅ Action completed! GTD in action!', 'success');
     }
   },
   
@@ -759,11 +985,13 @@ function setButtonLoading(button, isLoading) {
 }
 
 function onReady() {
-  // Initialize GRIT system
-  gritData.load();
-  gritUI.updateHeader();
-  gritUI.renderQuarterlyGoals();
-  gritUI.updateAnalytics();
+  // Initialize GRIT+GTD system
+  gritGtdData.load();
+  gritGtdUI.updateHeader();
+  gritGtdUI.renderQuarterlyGoals();
+  gritGtdUI.updateAnalytics();
+  gritGtdUI.renderInbox();
+  gritGtdUI.renderNextActions();
   
   // Initialize daily progress
   dailyProgress.load();
@@ -772,9 +1000,29 @@ function onReady() {
   const onbOk = document.getElementById('onb-ok');
   
   // Show onboarding if no main goal set
-  if (!gritData.profile.mainGoal.text && modal) {
+  if (!gritGtdData.profile.mainGoal.text && modal) {
     modal.classList.remove('hidden');
   }
+  
+  // GTD Capture functionality
+  const captureInput = document.getElementById('quick-capture');
+  const captureBtn = document.getElementById('capture-btn');
+  
+  captureBtn?.addEventListener('click', () => {
+    const text = captureInput.value.trim();
+    if (text) {
+      gritGtdData.captureItem(text);
+      gritGtdUI.renderInbox();
+      captureInput.value = '';
+      showToast('📥 Item captured! Time to clarify.', 'success');
+    }
+  });
+  
+  captureInput?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      captureBtn.click();
+    }
+  });
   
   // Onboarding setup
   onbOk?.addEventListener('click', () => {
@@ -801,41 +1049,41 @@ function onReady() {
       return;
     }
     
-    // Initialize GRIT profile
-    gritData.profile.id = Date.now().toString();
-    gritData.profile.createdAt = new Date().toISOString();
-    gritData.profile.mainGoal = {
+    // Initialize GRIT+GTD profile
+    gritGtdData.profile.id = Date.now().toString();
+    gritGtdData.profile.createdAt = new Date().toISOString();
+    gritGtdData.profile.mainGoal = {
       text: mainGoal,
       createdAt: new Date().toISOString(),
       targetDate: null,
       progress: 0
     };
-    gritData.profile.dailyActions = {
+    gritGtdData.profile.dailyActions = {
       primary: action1Name || 'Основные действия',
       secondary: action2Name || 'Вспомогательные действия',
       focusType: focusType
     };
     
-    gritData.save();
-    gritUI.updateHeader();
+    gritGtdData.save();
+    gritGtdUI.updateHeader();
     
     modal?.classList.add('hidden');
     showToast('🔥 GRIT Tracker настроен! Начинайте достигать!', 'success');
   });
   
   // Edit goal functionality
-  document.getElementById('edit-goal-btn').addEventListener('click', () => {
-    gritUI.showEditGoalModal();
+  document.getElementById('edit-goal-btn')?.addEventListener('click', () => {
+    gritGtdUI.showEditGoalModal();
   });
   
   // Add quarterly goal
-  document.getElementById('add-quarterly-goal').addEventListener('click', () => {
-    gritUI.showAddQuarterlyGoalModal();
+  document.getElementById('add-quarterly-goal')?.addEventListener('click', () => {
+    gritGtdUI.showAddQuarterlyGoalModal();
   });
   
   // Show insights
-  document.getElementById('show-insights').addEventListener('click', () => {
-    gritUI.showInsights();
+  document.getElementById('show-insights')?.addEventListener('click', () => {
+    gritGtdUI.showInsights();
   });
   
   // Plan form
@@ -905,7 +1153,7 @@ function onReady() {
     e.target.reset();
     
     // Update analytics after each entry
-    gritUI.updateAnalytics();
+    gritGtdUI.updateAnalytics();
     
     tg?.HapticFeedback?.notificationOccurred('success');
   });

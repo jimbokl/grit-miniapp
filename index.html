@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>🎯 Personal Goal Tracker v2.0 | Glassmorphism</title>
+    <title>🔥 GRIT + GTD v3.0 | Super Productivity System</title>
     <link rel="preconnect" href="https://telegram.org" />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
 :root {
-  --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --bg-glass: rgba(255, 255, 255, 0.1);
-  --bg-elevated: rgba(255, 255, 255, 0.15);
+  --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  --bg-glass: rgba(0, 0, 0, 0.4);
+  --bg-elevated: rgba(0, 0, 0, 0.6);
   --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.9);
-  --text-muted: rgba(255, 255, 255, 0.6);
+  --text-secondary: #e2e8f0;
+  --text-muted: #cbd5e1;
   --primary: #ff6b6b;
   --primary-gradient: linear-gradient(135deg, #ff6b6b, #feca57);
   --success: #26de81;
@@ -37,6 +37,8 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   min-height: 100vh;
   position: relative;
+  overflow-x: hidden;
+  width: 100vw;
 }
 
 body::before {
@@ -61,6 +63,8 @@ body::before {
   padding: var(--space-xl) var(--space-md);
   position: relative;
   z-index: 1;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .header {
@@ -823,6 +827,115 @@ input::placeholder {
 .grit-level-master { color: #ef4444; }
 .grit-level-champion { color: #8b5cf6; }
 
+/* GTD Styles */
+.gtd-capture {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.gtd-capture input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 2px solid var(--glass-border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.gtd-capture button {
+  padding: 12px 20px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.inbox-list, .actions-list {
+  min-height: 60px;
+}
+
+.inbox-item, .action-item {
+  padding: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.3s ease;
+}
+
+.inbox-item:hover, .action-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.inbox-item .item-text, .action-item .item-text {
+  flex: 1;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.inbox-item .item-actions, .action-item .item-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.empty-inbox, .empty-actions {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 20px;
+  font-size: 14px;
+}
+
+/* Context badges */
+.context-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.context-badge.energy-high { background: var(--success); }
+.context-badge.energy-medium { background: var(--warning); }
+.context-badge.energy-low { background: var(--error); }
+
+/* Priority indicators */
+.priority-a { border-left: 4px solid #ef4444; }
+.priority-b { border-left: 4px solid #f59e0b; }
+.priority-c { border-left: 4px solid #3b82f6; }
+.priority-d { border-left: 4px solid #64748b; }
+
+/* Clarify modal styles */
+.clarify-item {
+  background: var(--bg-elevated);
+  padding: 16px;
+  border-radius: 12px;
+  margin: 16px 0;
+  font-style: italic;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--primary);
+}
+
+.clarify-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.clarify-options .btn {
+  padding: 10px 16px;
+  font-size: 12px;
+}
+
 /* Error Animations */
 @keyframes errorShake {
   0%, 100% { transform: translateX(0); }
@@ -939,9 +1052,9 @@ input::placeholder {
       </div>
 
       <header class="header">
-        <h1>🔥 GRIT TRACKER</h1>
-        <div class="version-badge">v2.0 Glassmorphism ✨</div>
-        <div class="commit-badge">Commit: 6019290</div>
+        <h1>🔥 GRIT + GTD</h1>
+        <div class="version-badge">v3.0 Super System ✨</div>
+        <div class="commit-badge">Commit: 69a125f</div>
         <div class="grit-score" id="grit-score">GRIT Score: <span id="score-value">0</span></div>
         <div class="main-goal-display" id="main-goal-display">
           <span id="goal-text">Настройте вашу главную цель</span>
@@ -951,6 +1064,24 @@ input::placeholder {
           🔥 Streak: <span id="streak-count">0</span> дней | Уровень: <span id="grit-level">Новичок</span>
         </div>
       </header>
+
+      <section class="card">
+        <h2>📥 GTD Inbox</h2>
+        <div class="gtd-capture">
+          <input id="quick-capture" type="text" placeholder="Быстро записать мысль/задачу..." maxlength="200" />
+          <button id="capture-btn" class="btn primary">📥 Capture</button>
+        </div>
+        <div id="inbox-items" class="inbox-list">
+          <div class="empty-inbox">Inbox пуст - отличная работа! 🎯</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>⚡ Next Actions</h2>
+        <div id="next-actions" class="actions-list">
+          <div class="empty-actions">Пока нет next actions. Обработайте Inbox!</div>
+        </div>
+      </section>
 
       <section class="card">
         <h2>📋 План на сегодня</h2>
