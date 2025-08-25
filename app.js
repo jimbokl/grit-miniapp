@@ -1,5 +1,30 @@
 const tg = window.Telegram?.WebApp;
 
+// Get Telegram user info
+function getTelegramUser() {
+  try {
+    const user = tg?.initDataUnsafe?.user;
+    if (user) {
+      return {
+        id: user.id,
+        username: user.username || `user_${user.id}`,
+        firstName: user.first_name || '',
+        lastName: user.last_name || ''
+      };
+    }
+  } catch (e) {
+    console.warn('Could not get Telegram user:', e);
+  }
+  
+  // Fallback for testing
+  return {
+    id: 'demo_user',
+    username: 'demo_user',
+    firstName: 'Demo',
+    lastName: 'User'
+  };
+}
+
 // GRIT + GTD Super System
 const gritGtdData = {
   profile: {
@@ -134,7 +159,21 @@ const gritGtdData = {
   },
 
   save() {
+    const telegramUser = getTelegramUser();
+    const key = `grit_gtd_data_${telegramUser.username}`;
+    
+    localStorage.setItem(key, JSON.stringify({
+      telegramUser: telegramUser,
+      profile: this.profile,
+      gtd: this.gtd,
+      dailyLogs: this.dailyLogs,
+      analytics: this.analytics,
+      lastSaved: Date.now()
+    }));
+    
+    // Also save to global key for migration
     localStorage.setItem('grit_gtd_data', JSON.stringify({
+      telegramUser: telegramUser,
       profile: this.profile,
       gtd: this.gtd,
       dailyLogs: this.dailyLogs,
@@ -145,10 +184,17 @@ const gritGtdData = {
   
   load() {
     try {
-      // Try new GRIT+GTD format first
-      let stored = localStorage.getItem('grit_gtd_data');
+      const telegramUser = getTelegramUser();
+      const userKey = `grit_gtd_data_${telegramUser.username}`;
+      
+      // Try user-specific data first
+      let stored = localStorage.getItem(userKey);
       if (!stored) {
-        // Fallback to old GRIT format and migrate
+        // Try global data
+        stored = localStorage.getItem('grit_gtd_data');
+      }
+      if (!stored) {
+        // Fallback to old format
         stored = localStorage.getItem('grit_data');
       }
       
@@ -159,10 +205,17 @@ const gritGtdData = {
         this.dailyLogs = data.dailyLogs || [];
         this.analytics = data.analytics || { patterns: {}, trends: {} };
         
-        // Migrate old data if needed
-        if (!data.gtd) {
-          this.save(); // Save in new format
+        // Store telegram user info
+        this.profile.telegramUser = telegramUser;
+        
+        // Migrate to user-specific storage
+        if (!localStorage.getItem(userKey)) {
+          this.save(); // Save in new user-specific format
         }
+      } else {
+        // Initialize new user
+        this.profile.telegramUser = telegramUser;
+        this.save();
       }
     } catch (e) {
       console.warn('Could not load GRIT+GTD data:', e);
@@ -334,6 +387,13 @@ const gritGtdUI = {
         goalTextEl.textContent = gritGtdData.profile.mainGoal.text;
       }
       
+      // Update user info
+      const userInfoEl = document.getElementById('user-info');
+      if (userInfoEl && gritGtdData.profile.telegramUser) {
+        const user = gritGtdData.profile.telegramUser;
+        userInfoEl.textContent = `👤 ${user.firstName} ${user.lastName} (@${user.username})`;
+      }
+      
       // Edit button listener is handled in onReady()
       
     } catch (error) {
@@ -462,11 +522,11 @@ const gritGtdUI = {
         <div class="goal-setup">
           <label class="goal-input">
             <span>🎯 Главная цель:</span>
-            <input id="edit-main-goal" type="text" value="${gritData.profile.mainGoal.text}" maxlength="100" />
+            <input id="edit-main-goal" type="text" value="${gritGtdData.profile.mainGoal.text}" maxlength="100" />
           </label>
           <label class="goal-input">
             <span>📅 Дедлайн:</span>
-            <input id="edit-target-date" type="date" value="${gritData.profile.mainGoal.targetDate || ''}" />
+            <input id="edit-target-date" type="date" value="${gritGtdData.profile.mainGoal.targetDate || ''}" />
           </label>
         </div>
         <div class="onb-actions">
