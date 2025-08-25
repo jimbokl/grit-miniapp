@@ -1075,12 +1075,12 @@ input::placeholder {
       <header class="header">
         <h1>🔥 GRIT + GTD</h1>
         <div class="version-badge">v3.0 Super System ✨</div>
-        <div class="commit-badge">Commit: 546f71e</div>
+        <div class="commit-badge">Commit: 364648f</div>
         <div class="user-info" id="user-info">👤 Loading user...</div>
         <div class="grit-score" id="grit-score">GRIT Score: <span id="score-value">0</span></div>
         <div class="main-goal-display" id="main-goal-display">
           <span id="goal-text">Настройте вашу главную цель</span>
-          <button id="edit-goal-btn" class="edit-btn">✏️</button>
+          <button id="edit-goal-btn" class="edit-btn" onclick="window.editGoal()">✏️</button>
         </div>
         <div class="streak-display" id="streak-display">
           🔥 Streak: <span id="streak-count">0</span> дней | Уровень: <span id="grit-level">Новичок</span>
@@ -1131,7 +1131,7 @@ input::placeholder {
             <span>+ Добавить промежуточную цель</span>
           </div>
         </div>
-        <button id="add-quarterly-goal" class="btn primary" style="margin-top: 16px; width: 100%;">
+        <button id="add-quarterly-goal" class="btn primary" onclick="window.addQuarterlyGoal()" style="margin-top: 16px; width: 100%;">
           ➕ Добавить цель на квартал
         </button>
       </section>
@@ -1214,7 +1214,7 @@ input::placeholder {
           💪 Каждый день - это возможность стать лучше!
         </div>
         
-        <button id="show-insights" class="btn primary" style="width: 100%; margin-top: 16px;">
+        <button id="show-insights" class="btn primary" onclick="window.showInsights()" style="width: 100%; margin-top: 16px;">
           🧠 Показать инсайты
         </button>
       </section>

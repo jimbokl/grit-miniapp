@@ -1,12 +1,12 @@
 const tg = window.Telegram?.WebApp;
 
-// Get Telegram user info
+// Get Telegram user info - FIXED
 function getTelegramUser() {
   try {
     const user = tg?.initDataUnsafe?.user;
-    if (user) {
+    if (user && user.id) {
       return {
-        id: user.id,
+        id: user.id.toString(),
         username: user.username || `user_${user.id}`,
         firstName: user.first_name || '',
         lastName: user.last_name || ''
@@ -16,9 +16,9 @@ function getTelegramUser() {
     console.warn('Could not get Telegram user:', e);
   }
   
-  // Fallback for testing
+  // Immediate fallback for web testing
   return {
-    id: 'demo_user',
+    id: 'demo_123',
     username: 'demo_user',
     firstName: 'Demo',
     lastName: 'User'
@@ -387,11 +387,11 @@ const gritGtdUI = {
         goalTextEl.textContent = gritGtdData.profile.mainGoal.text;
       }
       
-      // Update user info
+      // Update user info immediately
       const userInfoEl = document.getElementById('user-info');
-      if (userInfoEl && gritGtdData.profile.telegramUser) {
-        const user = gritGtdData.profile.telegramUser;
-        userInfoEl.textContent = `👤 ${user.firstName} ${user.lastName} (@${user.username})`;
+      if (userInfoEl) {
+        const user = gritGtdData.profile.telegramUser || getTelegramUser();
+        userInfoEl.textContent = `👤 ${user.firstName || 'Demo'} ${user.lastName || 'User'} (@${user.username})`;
       }
       
       // Edit button listener is handled in onReady()
@@ -1054,8 +1054,33 @@ function setButtonLoading(button, isLoading) {
   }
 }
 
-// Global function for buttons to work
-window.gritGtdUI = {};
+// Global functions for onclick handlers
+window.editGoal = function() {
+  console.log('🔧 editGoal() called');
+  if (window.gritGtdUI && window.gritGtdUI.showEditGoalModal) {
+    window.gritGtdUI.showEditGoalModal();
+  } else {
+    console.error('❌ gritGtdUI.showEditGoalModal not available');
+  }
+};
+
+window.addQuarterlyGoal = function() {
+  console.log('🔧 addQuarterlyGoal() called');
+  if (window.gritGtdUI && window.gritGtdUI.showAddQuarterlyGoalModal) {
+    window.gritGtdUI.showAddQuarterlyGoalModal();
+  } else {
+    console.error('❌ gritGtdUI.showAddQuarterlyGoalModal not available');
+  }
+};
+
+window.showInsights = function() {
+  console.log('🔧 showInsights() called');
+  if (window.gritGtdUI && window.gritGtdUI.showInsights) {
+    window.gritGtdUI.showInsights();
+  } else {
+    console.error('❌ gritGtdUI.showInsights not available');
+  }
+};
 
 function onReady() {
   // Initialize GRIT+GTD system
