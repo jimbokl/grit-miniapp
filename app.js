@@ -324,6 +324,7 @@ const gritGtdUI = {
       const levelEl = document.getElementById('grit-level');
       const streakEl = document.getElementById('streak-count');
       const goalTextEl = document.getElementById('goal-text');
+      const editBtn = document.getElementById('edit-goal-btn');
       
       if (scoreEl) scoreEl.textContent = score;
       if (levelEl) levelEl.textContent = level;
@@ -332,6 +333,13 @@ const gritGtdUI = {
       if (goalTextEl && gritGtdData.profile.mainGoal?.text) {
         goalTextEl.textContent = gritGtdData.profile.mainGoal.text;
       }
+      
+      // Add edit button event listener if not already added
+      if (editBtn && !editBtn.hasAttribute('data-listener')) {
+        editBtn.addEventListener('click', () => this.showEditGoalModal());
+        editBtn.setAttribute('data-listener', 'true');
+      }
+      
     } catch (error) {
       console.warn('Error updating header:', error);
     }
@@ -546,9 +554,11 @@ const gritGtdUI = {
   
   renderQuarterlyGoals() {
     const container = document.getElementById('quarterly-goals');
+    if (!container) return;
+    
     container.innerHTML = '';
     
-    gritData.profile.quarterlyGoals.forEach(goal => {
+    gritGtdData.profile.quarterlyGoals.forEach(goal => {
       const daysLeft = Math.ceil((new Date(goal.deadline) - new Date()) / (1000 * 60 * 60 * 24));
       const isOverdue = daysLeft < 0;
       
@@ -574,13 +584,20 @@ const gritGtdUI = {
       container.appendChild(goalElement);
     });
     
-    if (gritData.profile.quarterlyGoals.length === 0) {
+    if (gritGtdData.profile.quarterlyGoals.length === 0) {
       container.innerHTML = '<div class="no-goals">Пока нет промежуточных целей. Добавьте первую!</div>';
+    }
+    
+    // Add event listener to add button after rendering
+    const addBtn = document.getElementById('add-quarterly-goal');
+    if (addBtn && !addBtn.hasAttribute('data-listener')) {
+      addBtn.addEventListener('click', () => this.showAddQuarterlyGoalModal());
+      addBtn.setAttribute('data-listener', 'true');
     }
   },
   
   updateGoalProgress(goalId, newProgress) {
-    gritData.updateGoalProgress(goalId, newProgress);
+    gritGtdData.updateGoalProgress(goalId, newProgress);
     this.renderQuarterlyGoals();
     this.updateHeader();
     showToast(`📈 Прогресс обновлен: ${newProgress}%`, 'success');
@@ -588,8 +605,8 @@ const gritGtdUI = {
   
   deleteQuarterlyGoal(goalId) {
     if (confirm('Удалить эту промежуточную цель?')) {
-      gritData.profile.quarterlyGoals = gritData.profile.quarterlyGoals.filter(g => g.id !== goalId);
-      gritData.save();
+      gritGtdData.profile.quarterlyGoals = gritGtdData.profile.quarterlyGoals.filter(g => g.id !== goalId);
+      gritGtdData.save();
       this.renderQuarterlyGoals();
       this.updateHeader();
       showToast('🗑️ Цель удалена', 'warning');
@@ -598,8 +615,8 @@ const gritGtdUI = {
   
   updateAnalytics() {
     try {
-      const profile = gritData.profile;
-      const logs = gritData.dailyLogs || [];
+      const profile = gritGtdData.profile;
+      const logs = gritGtdData.dailyLogs || [];
       
       const longestStreakEl = document.getElementById('longest-streak');
       const totalDaysEl = document.getElementById('total-days');
@@ -617,15 +634,22 @@ const gritGtdUI = {
       this.updateMotivationMessage();
       this.updateJourneyTimeline();
       
+      // Add insights button listener
+      const insightsBtn = document.getElementById('show-insights');
+      if (insightsBtn && !insightsBtn.hasAttribute('data-listener')) {
+        insightsBtn.addEventListener('click', () => this.showInsights());
+        insightsBtn.setAttribute('data-listener', 'true');
+      }
+      
     } catch (error) {
       console.warn('Error updating analytics:', error);
     }
   },
   
   updateMotivationMessage() {
-    const score = gritData.profile.totalScore;
-    const streak = gritData.profile.streak.current;
-    const level = gritData.getGritLevel(score);
+    const score = gritGtdData.profile.totalScore;
+    const streak = gritGtdData.profile.streak.current;
+    const level = gritGtdData.getGritLevel(score);
     
     const messages = {
       low: [
@@ -661,8 +685,8 @@ const gritGtdUI = {
       const timeline = document.getElementById('journey-timeline');
       if (!timeline) return;
       
-      const profile = gritData.profile;
-      const logs = (gritData.dailyLogs || []).slice(-7).reverse(); // Last 7 days
+      const profile = gritGtdData.profile;
+      const logs = (gritGtdData.dailyLogs || []).slice(-7).reverse(); // Last 7 days
       
       timeline.innerHTML = '';
       
@@ -719,8 +743,8 @@ const gritGtdUI = {
   },
   
   showInsights() {
-    const profile = gritData.profile;
-    const logs = gritData.dailyLogs;
+    const profile = gritGtdData.profile;
+    const logs = gritGtdData.dailyLogs;
     const score = profile.totalScore;
     
     let insights = [];
@@ -769,9 +793,9 @@ const gritGtdUI = {
   },
   
   getPersonalizedRecommendation() {
-    const score = gritData.profile.totalScore;
-    const streak = gritData.profile.streak.current;
-    const quarterlyGoals = gritData.profile.quarterlyGoals.length;
+    const score = gritGtdData.profile.totalScore;
+    const streak = gritGtdData.profile.streak.current;
+    const quarterlyGoals = gritGtdData.profile.quarterlyGoals.length;
     
     if (score < 25) {
       return "Начните с малого - поставьте 1-2 промежуточные цели и фокусируйтесь на постоянстве, а не на интенсивности.";
@@ -804,12 +828,12 @@ const dailyProgress = {
     this.save();
     
     // Log to GRIT system  
-    gritData.logDay({
+    gritGtdData.logDay({
       primary: this.current.touches,
       secondary: this.current.demos,
       focusMinutes: this.current.focus_minutes
     }, 5, '', '');
-    gritUI.updateHeader();
+    gritGtdUI.updateHeader();
   },
   
   updateDisplay() {
@@ -857,17 +881,17 @@ const dailyProgress = {
   celebratePerfectDay() {
     // Prevent multiple celebrations for the same day
     const today = new Date().toDateString();
-    const todayLog = gritData.dailyLogs.find(log => log.date === today);
+    const todayLog = gritGtdData.dailyLogs.find(log => log.date === today);
     
     if (todayLog && todayLog.perfectDayCelebrated) {
       return; // Already celebrated today
     }
     
     // Update streak
-    const oldStreak = gritData.profile.streak.current;
-    gritData.profile.streak.current += 1;
-    if (gritData.profile.streak.current > gritData.profile.streak.longest) {
-      gritData.profile.streak.longest = gritData.profile.streak.current;
+    const oldStreak = gritGtdData.profile.streak.current;
+    gritGtdData.profile.streak.current += 1;
+    if (gritGtdData.profile.streak.current > gritGtdData.profile.streak.longest) {
+      gritGtdData.profile.streak.longest = gritGtdData.profile.streak.current;
     }
     
     // Mark celebration for today
@@ -875,18 +899,18 @@ const dailyProgress = {
       todayLog.perfectDayCelebrated = true;
     }
     
-    gritData.save();
-    gritUI.updateHeader();
-    gritUI.updateAnalytics();
+    gritGtdData.save();
+    gritGtdUI.updateHeader();
+    gritGtdUI.updateAnalytics();
     
     // Enhanced celebration message
-    let celebrationMessage = `🔥 Perfect Day! Streak: ${gritData.profile.streak.current} дней!`;
+    let celebrationMessage = `🔥 Идеальный день! Streak: ${gritGtdData.profile.streak.current} дней!`;
     
-    if (gritData.profile.streak.current === 7) {
+    if (gritGtdData.profile.streak.current === 7) {
       celebrationMessage = '🌟 Неделя подряд! Вы развиваете настоящий GRIT!';
-    } else if (gritData.profile.streak.current === 30) {
+    } else if (gritGtdData.profile.streak.current === 30) {
       celebrationMessage = '👑 Месяц подряд! Вы мастер настойчивости!';
-    } else if (gritData.profile.streak.current > oldStreak && gritData.profile.streak.current > gritData.profile.streak.longest - 1) {
+    } else if (gritGtdData.profile.streak.current > oldStreak && gritGtdData.profile.streak.current > gritGtdData.profile.streak.longest - 1) {
       celebrationMessage = '🎆 Новый рекорд streak! Невероятная настойчивость!';
     }
     
@@ -1071,20 +1095,7 @@ function onReady() {
     showToast('🔥 GRIT Tracker настроен! Начинайте достигать!', 'success');
   });
   
-  // Edit goal functionality
-  document.getElementById('edit-goal-btn')?.addEventListener('click', () => {
-    gritGtdUI.showEditGoalModal();
-  });
-  
-  // Add quarterly goal
-  document.getElementById('add-quarterly-goal')?.addEventListener('click', () => {
-    gritGtdUI.showAddQuarterlyGoalModal();
-  });
-  
-  // Show insights
-  document.getElementById('show-insights')?.addEventListener('click', () => {
-    gritGtdUI.showInsights();
-  });
+  // Note: Button event listeners are now added dynamically in render methods
   
   // Plan form
   document.getElementById('plan-form')?.addEventListener('submit', async (e) => {
