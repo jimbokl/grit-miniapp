@@ -543,24 +543,43 @@ const gritGtdUI = {
       if (e.target === modal) modal.remove();
     });
     
-    document.getElementById('save-goal').onclick = () => {
-      const newGoal = document.getElementById('edit-main-goal').value.trim();
-      const targetDate = document.getElementById('edit-target-date').value;
-      
-      if (newGoal) {
-        gritGtdData.profile.mainGoal.text = newGoal;
-        gritGtdData.profile.mainGoal.targetDate = targetDate;
-        gritGtdData.save();
-        this.updateHeader();
-        showToast('🎯 Главная цель обновлена!', 'success');
-      } else {
-        showToast('🎯 Пожалуйста, укажите цель', 'warning');
-        return;
-      }
-      modal.remove();
-    };
+    // Save button handler
+    const saveBtn = modal.querySelector('#save-goal');
+    const cancelBtn = modal.querySelector('#cancel-edit');
     
-    document.getElementById('cancel-edit').onclick = () => modal.remove();
+    if (saveBtn) {
+      saveBtn.addEventListener('click', () => {
+        const newGoal = document.getElementById('edit-main-goal').value.trim();
+        const targetDate = document.getElementById('edit-target-date').value;
+        
+        if (newGoal) {
+          gritGtdData.profile.mainGoal.text = newGoal;
+          gritGtdData.profile.mainGoal.targetDate = targetDate;
+          gritGtdData.save();
+          this.updateHeader();
+          showToast('🎯 Главная цель обновлена!', 'success');
+          modal.remove();
+        } else {
+          showToast('🎯 Пожалуйста, укажите цель', 'warning');
+          document.getElementById('edit-main-goal').focus();
+        }
+      });
+    }
+    
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => {
+        modal.remove();
+      });
+    }
+    
+    // ESC key to close
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        modal.remove();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
   },
   
   showAddQuarterlyGoalModal() {
@@ -651,28 +670,48 @@ const gritGtdUI = {
       deadlineInput.setAttribute('data-date', deadline.toISOString().split('T')[0]);
     }
     
-    document.getElementById('save-quarterly').onclick = () => {
-      const text = document.getElementById('quarterly-goal-text').value.trim();
-      const deadlineInput = document.getElementById('quarterly-deadline');
-      const deadline = deadlineInput.getAttribute('data-date') || deadlineInput.value;
-      
-      if (!text) {
-        showToast('🎯 Введите описание цели', 'warning');
-        return;
-      }
-      
-      if (!deadline) {
-        showToast('📅 Выберите дедлайн', 'warning');
-        return;
-      }
-      
-      const goal = gritGtdData.addQuarterlyGoal(text, deadline);
-      this.renderQuarterlyGoals();
-      showToast('🎲 Промежуточная цель добавлена!', 'success');
-      modal.remove();
-    };
+    // Button handlers with proper selectors
+    const saveQuarterlyBtn = modal.querySelector('#save-quarterly');
+    const cancelQuarterlyBtn = modal.querySelector('#cancel-quarterly');
     
-    document.getElementById('cancel-quarterly').onclick = () => modal.remove();
+    if (saveQuarterlyBtn) {
+      saveQuarterlyBtn.addEventListener('click', () => {
+        const text = document.getElementById('quarterly-goal-text').value.trim();
+        const deadlineInput = document.getElementById('quarterly-deadline');
+        const deadline = deadlineInput.getAttribute('data-date') || deadlineInput.value;
+        
+        if (!text) {
+          showToast('🎯 Введите описание цели', 'warning');
+          document.getElementById('quarterly-goal-text').focus();
+          return;
+        }
+        
+        if (!deadline) {
+          showToast('📅 Выберите дедлайн', 'warning');
+          return;
+        }
+        
+        const goal = gritGtdData.addQuarterlyGoal(text, deadline);
+        this.renderQuarterlyGoals();
+        showToast('🎲 Промежуточная цель добавлена!', 'success');
+        modal.remove();
+      });
+    }
+    
+    if (cancelQuarterlyBtn) {
+      cancelQuarterlyBtn.addEventListener('click', () => {
+        modal.remove();
+      });
+    }
+    
+    // ESC key to close
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        modal.remove();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
   },
   
   renderQuarterlyGoals() {
@@ -897,12 +936,29 @@ const gritGtdUI = {
           ${this.getPersonalizedRecommendation()}
         </div>
         <div class="onb-actions">
-          <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn primary">👍 Понятно</button>
+          <button id="close-insights" class="btn primary">👍 Понятно</button>
         </div>
       </div>
     `;
     
     document.body.appendChild(modal);
+    
+    // Close button handler for insights
+    const closeBtn = modal.querySelector('#close-insights');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        modal.remove();
+      });
+    }
+    
+    // ESC key to close insights
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        modal.remove();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
   },
   
   getPersonalizedRecommendation() {
