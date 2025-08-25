@@ -333,6 +333,168 @@ const gritUI = {
       this.updateHeader();
       showToast('🗑️ Цель удалена', 'warning');
     }
+  },
+  
+  updateAnalytics() {
+    const profile = gritData.profile;
+    const logs = gritData.dailyLogs;
+    
+    document.getElementById('longest-streak').textContent = profile.streak.longest;
+    document.getElementById('total-days').textContent = logs.length;
+    document.getElementById('comebacks').textContent = profile.streak.comebacks;
+    
+    const completedGoals = profile.quarterlyGoals.filter(g => g.progress >= 100).length;
+    document.getElementById('goals-completed').textContent = completedGoals;
+    
+    // Update motivation message based on GRIT score
+    this.updateMotivationMessage();
+    this.updateJourneyTimeline();
+  },
+  
+  updateMotivationMessage() {
+    const score = gritData.profile.totalScore;
+    const streak = gritData.profile.streak.current;
+    const level = gritData.getGritLevel(score);
+    
+    const messages = {
+      low: [
+        "🌱 Каждый эксперт когда-то был новичком!",
+        "💪 Маленькие шаги ведут к большим результатам!",
+        "🎯 Фокусируйтесь на процессе, результат придет!",
+        "🔥 Ваш GRIT растет с каждым днем!"
+      ],
+      medium: [
+        "🚀 Вы на правильном пути к мастерству!",
+        "⭐ Consistency beats intensity!",
+        "🎪 Препятствия - это возможности для роста!",
+        "💎 Ваша настойчивость впечатляет!"
+      ],
+      high: [
+        "👑 Вы - пример настоящего GRIT!",
+        "🔥 Мастер не тот, кто не падает, а кто встает!",
+        "⚡ Ваша страсть и настойчивость вдохновляют!",
+        "🌟 Продолжайте показывать что значит истинный GRIT!"
+      ]
+    };
+    
+    let messageSet = messages.low;
+    if (score >= 51) messageSet = messages.medium;
+    if (score >= 76) messageSet = messages.high;
+    
+    const randomMessage = messageSet[Math.floor(Math.random() * messageSet.length)];
+    document.getElementById('motivation-message').textContent = randomMessage;
+  },
+  
+  updateJourneyTimeline() {
+    const timeline = document.getElementById('journey-timeline');
+    const profile = gritData.profile;
+    const logs = gritData.dailyLogs.slice(-7).reverse(); // Last 7 days
+    
+    timeline.innerHTML = '';
+    
+    // Add creation milestone
+    if (profile.createdAt) {
+      const createDate = new Date(profile.createdAt);
+      const daysAgo = Math.floor((Date.now() - createDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      const item = document.createElement('div');
+      item.className = 'timeline-item';
+      item.innerHTML = `
+        <div class="timeline-date">${daysAgo} дней назад</div>
+        <div class="timeline-content">🎯 Поставили главную цель: "${profile.mainGoal.text}"</div>
+      `;
+      timeline.appendChild(item);
+    }
+    
+    // Add recent activity
+    logs.forEach(log => {
+      const date = new Date(log.date);
+      const dayName = date.toLocaleDateString('ru', { weekday: 'short', day: 'numeric' });
+      
+      const hasActivity = log.actions.primary > 0 || log.actions.secondary > 0 || log.actions.focusMinutes > 0;
+      const emoji = hasActivity ? '✅' : '⭕';
+      const message = hasActivity ? 
+        `Выполнено: ${log.actions.primary + log.actions.secondary} действий, ${log.actions.focusMinutes} мин фокуса` :
+        'День пропущен';
+      
+      const item = document.createElement('div');
+      item.className = 'timeline-item';
+      item.innerHTML = `
+        <div class="timeline-date">${dayName}</div>
+        <div class="timeline-content">${emoji} ${message}</div>
+      `;
+      timeline.appendChild(item);
+    });
+    
+    if (logs.length === 0) {
+      timeline.innerHTML = '<div class="timeline-item"><div class="timeline-content">Начните отмечать прогресс каждый день!</div></div>';
+    }
+  },
+  
+  showInsights() {
+    const profile = gritData.profile;
+    const logs = gritData.dailyLogs;
+    const score = profile.totalScore;
+    
+    let insights = [];
+    
+    // Generate insights based on data
+    if (logs.length < 7) {
+      insights.push("📊 Накопите больше данных для персональных инсайтов");
+    } else {
+      const avgFocus = logs.reduce((sum, log) => sum + log.actions.focusMinutes, 0) / logs.length;
+      const bestDay = logs.reduce((best, log) => 
+        (log.actions.primary + log.actions.secondary) > (best.actions?.primary + best.actions?.secondary || 0) ? log : best
+      , {});
+      
+      insights.push(`🎯 Ваш средний фокус: ${Math.round(avgFocus)} минут в день`);
+      insights.push(`⭐ Лучший день: ${bestDay.actions?.primary + bestDay.actions?.secondary || 0} действий`);
+      
+      if (profile.streak.current > 3) {
+        insights.push(`🔥 Отличный streak! Продолжайте в том же духе!`);
+      }
+      
+      if (profile.quarterlyGoals.length > 0) {
+        const avgProgress = profile.quarterlyGoals.reduce((sum, g) => sum + g.progress, 0) / profile.quarterlyGoals.length;
+        insights.push(`📈 Средний прогресс квартальных целей: ${Math.round(avgProgress)}%`);
+      }
+    }
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+      <div class="modal-card">
+        <h2>🧠 Ваши GRIT Инсайты</h2>
+        <div class="insights-list">
+          ${insights.map(insight => `<div class="insight-item">${insight}</div>`).join('')}
+        </div>
+        <div style="margin-top: 20px; padding: 16px; background: var(--bg-elevated); border-radius: 12px;">
+          <strong>💡 Рекомендация:</strong><br>
+          ${this.getPersonalizedRecommendation()}
+        </div>
+        <div class="onb-actions">
+          <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn primary">👍 Понятно</button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(modal);
+  },
+  
+  getPersonalizedRecommendation() {
+    const score = gritData.profile.totalScore;
+    const streak = gritData.profile.streak.current;
+    const quarterlyGoals = gritData.profile.quarterlyGoals.length;
+    
+    if (score < 25) {
+      return "Начните с малого - поставьте 1-2 промежуточные цели и фокусируйтесь на постоянстве, а не на интенсивности.";
+    } else if (score < 50) {
+      return "Увеличьте сложность целей и добавьте ежедневную рефлексию для ускорения роста.";
+    } else if (score < 75) {
+      return "Отлично! Теперь работайте над более амбициозными целями и помогайте другим развивать GRIT.";
+    } else {
+      return "Вы мастер GRIT! Поделитесь своим опытом и вдохновляйте других на великие свершения!";
+    }
   }
 };
 
@@ -501,6 +663,7 @@ function onReady() {
   gritData.load();
   gritUI.updateHeader();
   gritUI.renderQuarterlyGoals();
+  gritUI.updateAnalytics();
   
   // Initialize daily progress
   dailyProgress.load();
@@ -557,6 +720,11 @@ function onReady() {
     gritUI.showAddQuarterlyGoalModal();
   });
   
+  // Show insights
+  document.getElementById('show-insights').addEventListener('click', () => {
+    gritUI.showInsights();
+  });
+  
   // Plan form
   document.getElementById('plan-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -607,8 +775,24 @@ function onReady() {
     };
     
     dailyProgress.updateCurrent(inc);
-    showToast('✅ Прогресс засчитан! Отличная работа!', 'success');
+    
+    // Enhanced motivation based on progress
+    const totalActions = inc.touches + inc.demos;
+    let motivationMessage = '✅ Прогресс засчитан!';
+    
+    if (totalActions >= 10) {
+      motivationMessage = '🔥 Невероятная продуктивность! Вы на пути к мастерству!';
+    } else if (totalActions >= 5) {
+      motivationMessage = '💪 Отличная работа! GRIT в действии!';
+    } else if (inc.focus_minutes >= 60) {
+      motivationMessage = '🧠 Глубокий фокус - секрет больших достижений!';
+    }
+    
+    showToast(motivationMessage, 'success');
     e.target.reset();
+    
+    // Update analytics after each entry
+    gritUI.updateAnalytics();
     
     tg?.HapticFeedback?.notificationOccurred('success');
   });

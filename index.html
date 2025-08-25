@@ -620,6 +620,132 @@ input::placeholder {
   font-style: italic;
   padding: 20px;
 }
+
+/* Analytics Styles */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.motivation-message {
+  background: var(--primary-gradient);
+  color: white;
+  padding: 16px;
+  border-radius: 16px;
+  text-align: center;
+  font-weight: 600;
+  margin: 16px 0;
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.2);
+  animation: motivationGlow 4s ease-in-out infinite;
+}
+
+@keyframes motivationGlow {
+  0%, 100% { box-shadow: 0 8px 25px rgba(255, 107, 107, 0.2); }
+  50% { box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4); }
+}
+
+/* Journey Timeline */
+.journey-timeline {
+  padding: 16px;
+  background: var(--bg-elevated);
+  border-radius: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.timeline-item {
+  padding: 12px;
+  border-left: 3px solid var(--primary);
+  margin: 8px 0;
+  margin-left: 16px;
+  position: relative;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 16px;
+  width: 12px;
+  height: 12px;
+  background: var(--primary);
+  border-radius: 50%;
+}
+
+.timeline-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.timeline-content {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Insights Styles */
+.insights-list {
+  margin: 16px 0;
+}
+
+.insight-item {
+  padding: 12px;
+  margin: 8px 0;
+  background: var(--bg-elevated);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  border-left: 3px solid var(--primary);
+}
+
+/* Enhanced Modal Animations */
+.modal {
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* GRIT Level Colors */
+.grit-level-novice { color: #94a3b8; }
+.grit-level-developing { color: #3b82f6; }
+.grit-level-focused { color: #f59e0b; }
+.grit-level-master { color: #ef4444; }
+.grit-level-champion { color: #8b5cf6; }
     </style>
   </head>
   <body>
@@ -764,6 +890,46 @@ input::placeholder {
           </label>
           <button type="submit" class="btn success">✅ Добавить</button>
         </form>
+      </section>
+
+      <section class="card">
+        <h2>📈 GRIT Analytics</h2>
+        <div class="analytics-grid">
+          <div class="stat-item">
+            <div class="stat-value" id="longest-streak">0</div>
+            <div class="stat-label">Лучший Streak</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="total-days">0</div>
+            <div class="stat-label">Дней в пути</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="comebacks">0</div>
+            <div class="stat-label">Comebacks</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="goals-completed">0</div>
+            <div class="stat-label">Цели достигнуто</div>
+          </div>
+        </div>
+        
+        <div class="motivation-message" id="motivation-message">
+          💪 Каждый день - это возможность стать лучше!
+        </div>
+        
+        <button id="show-insights" class="btn primary" style="width: 100%; margin-top: 16px;">
+          🧠 Показать инсайты
+        </button>
+      </section>
+
+      <section class="card">
+        <h2>🌟 Ваш GRIT Journey</h2>
+        <div class="journey-timeline" id="journey-timeline">
+          <div class="timeline-item">
+            <div class="timeline-date">Сегодня</div>
+            <div class="timeline-content">Начало вашего GRIT пути! 🚀</div>
+          </div>
+        </div>
       </section>
       
       <footer style="text-align: center; padding: 20px; margin-top: 40px;">
