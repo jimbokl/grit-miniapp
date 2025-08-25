@@ -1,6 +1,19 @@
-## CLAUDE: Personal Goal Tracker Development Guidelines
+## CLAUDE: GRIT BOT v2.0 Development Guidelines
 
-This document defines the development standards for the Personal Goal Tracker project (Telegram WebApp). This is a fully personalized goal tracking system with glassmorphism design that adapts to any user's objectives and terminology.
+This document defines the development standards for the GRIT BOT project (Telegram WebApp). This is a complete GRIT (passion + perseverance) tracking system with glassmorphism design based on Angela Duckworth's research.
+
+## 🎯 PROJECT STATUS: PRODUCTION READY [Commit: ad4b3b3]
+
+### **✅ COMPLETED IMPLEMENTATION:**
+- **Complete GRIT logic** documented in logic.md
+- **Main goal management** with editing and target dates
+- **Quarterly goals system** with deadlines and progress tracking
+- **GRIT Score calculator** (Passion + Perseverance + Consistency + Growth)
+- **Streak system** with comeback tracking and motivation
+- **Analytics dashboard** with insights and recommendations
+- **Journey timeline** visualization
+- **Glassmorphism design** with purple-blue gradients
+- **Full responsive mobile UI** optimized for Telegram WebApp
 
 ## 🚨 DEPLOYMENT LESSONS LEARNED (КОРНЕВАЯ ПРОБЛЕМА НАЙДЕНА):
 
@@ -33,12 +46,30 @@ This document defines the development standards for the Personal Goal Tracker pr
 ### **📚 КЛЮЧЕВОЙ УРОК:**
 **ВСЕГДА читать GitHub Pages документацию про GITHUB_TOKEN ограничения!**
 
-### **📝 ИСТОРИЯ РЕШЕНИЯ ПРОБЛЕМЫ:**
+### **📝 ИСТОРИЯ РАЗВИТИЯ ПРОЕКТА:**
+
+#### **Phase 1: Deployment Issues (12:45-13:30)**
 - **Коммит ce675b5** (12:45): Последний успешный деплой до проблемы
 - **Коммиты 31cd961, cde83f3, b53095f** (13:17-13:20): Попытки исправить через force push
 - **Коммит a1b97e3** (13:24): Создан GitHub Actions workflow  
 - **Коммит 21a252e** (13:24): Триггер workflow для принудительного деплоя
-- **РЕЗУЛЬТАТ**: GitHub Actions должен обойти GITHUB_TOKEN ограничение
+- **РЕЗУЛЬТАТ**: GitHub Actions решил GITHUB_TOKEN ограничение
+
+#### **Phase 2: GRIT Implementation (13:30-14:00)**
+- **Коммит 5e9e7f7** (13:35): Базовая GRIT логика и scoring система
+- **Коммит 6019290** (13:40): Полноценный glassmorphism miniapp
+- **Коммит 3e543cc** (13:45): Добавлены version indicators
+- **Коммит ad4b3b3** (13:50): COMPLETE GRIT BOT - production ready
+
+#### **🎯 FINAL FEATURES [Commit: ad4b3b3]:**
+- ✅ **Main Goal Management**: Editing, target dates, progress tracking
+- ✅ **Quarterly Goals**: Add/edit/delete with deadlines
+- ✅ **GRIT Score**: Real-time calculation (Passion+Perseverance+Consistency+Growth)
+- ✅ **Streak System**: Current/longest streaks + comeback tracking
+- ✅ **Analytics**: Dashboard with insights and recommendations
+- ✅ **Journey Timeline**: Visual progress history
+- ✅ **Motivational Engine**: Dynamic messages based on performance
+- ✅ **Glassmorphism UI**: Premium visual design with animations
 
 ### 1) Technology Stack
 - **Frontend**: Vanilla JavaScript ES6+, HTML5, CSS3 with Glassmorphism design system
@@ -63,26 +94,40 @@ This document defines the development standards for the Personal Goal Tracker pr
 - `config/` - Environment configuration
 - `db/` - Database migrations (Alembic) and schemas
 
-### 3) Core Business Rules - Complete Personalization System
-- **Universal Goal Structure**: Any goal → 3 measurable daily actions
-  - **Primary Actions**: Core activities that directly achieve the goal (user-defined)
-  - **Supporting Actions**: Auxiliary activities that help the goal (user-defined) 
-  - **Focus Time**: Deep work time in minutes (always in minutes, but user defines type)
+### 3) GRIT System Architecture - Research-Based Implementation
 
-- **Full Personalization**: 
-  - User sets their main goal (e.g., "Launch a startup", "Learn French", "Get fit")
-  - User defines what their "primary actions" are (e.g., "client calls", "vocabulary practice", "workouts")
-  - User defines what their "supporting actions" are (e.g., "investor meetings", "conversation practice", "meal prep")
-  - User selects focus type (study/development/planning/practice/work)
+**GRIT Definition (Angela Duckworth):** Passion and perseverance for long-term goals
 
-- **Dynamic Interface**: All UI elements change based on user's terminology
-- **Perfect Day**: Achievement of all three personalized daily goals
-- **Data Flow**: Initial setup → Morning planning → Day tracking → Evening review
+#### **🎯 Goal Hierarchy System:**
+- **Main Goal**: Long-term ambitious goal (1-5 years) with target date
+- **Quarterly Goals**: 3-month milestones linked to main goal
+- **Daily Actions**: Specific measurable activities supporting quarterly goals
 
-**Example Configurations:**
-- **Entrepreneur**: Goal: "Launch SaaS" | Primary: "Customer calls" | Supporting: "Investor meetings" | Focus: "Development"
-- **Student**: Goal: "Pass certification" | Primary: "Practice problems" | Supporting: "Study sessions" | Focus: "Learning"
-- **Athlete**: Goal: "Run marathon" | Primary: "Training runs" | Supporting: "Strength workouts" | Focus: "Planning"
+#### **📊 GRIT Score Calculation (0-100):**
+- **Passion Score (0-25)**: Goal clarity + emotional connection + sacrifice willingness
+- **Perseverance Score (0-25)**: Current streak + comebacks after failures
+- **Consistency Score (0-25)**: Daily execution rate + progress stability  
+- **Growth Score (0-25)**: Learning from obstacles + strategy adaptation
+
+#### **🏆 GRIT Levels:**
+- **0-25**: Новичок 🌱
+- **26-50**: Развивающийся 💪
+- **51-75**: Целеустремленный 🎯  
+- **76-90**: Мастер настойчивости 🔥
+- **91-100**: GRIT Чемпион 👑
+
+#### **🔥 Motivational System:**
+- **Dynamic messaging** based on GRIT score and performance
+- **Streak celebrations** with comeback support
+- **Journey timeline** showing progress milestones
+- **Analytics insights** with personalized recommendations
+
+#### **📱 User Experience Flow:**
+1. **Onboarding**: Set main goal + define daily actions
+2. **Daily Planning**: Set targets for primary/secondary actions + focus time
+3. **Progress Tracking**: Real-time updates with GRIT Score calculation
+4. **Analytics Review**: Weekly insights and recommendations
+5. **Goal Evolution**: Quarterly goal management and main goal refinement
 
 ### 4) Code Quality Standards
 **Frontend:**
@@ -157,9 +202,31 @@ This document defines the development standards for the Personal Goal Tracker pr
 - **Network**: Minimize API calls, batch operations when possible
 - **Mobile**: Touch targets, smooth animations, fast load times
 
-### 12) References
-- **TRD**: `TRD.md` - Technical Requirements Document
+### 12) References & Documentation
+- **logic.md**: Complete GRIT bot architecture and implementation plan
+- **TRD.md**: Technical Requirements Document  
+- **TODO.md**: Development roadmap and feature backlog
 - **Telegram WebApp**: https://core.telegram.org/bots/webapps
 - **Bot API**: https://core.telegram.org/bots/api
+- **GRIT Research**: Angela Duckworth's "Grit: Passion and Perseverance for Long-Term Goals"
+
+### 13) Production Deployment Info [Current: ad4b3b3]
+- **Live URL**: https://jimbokl.github.io/grit-miniapp/
+- **GitHub Repository**: https://github.com/jimbokl/grit-miniapp
+- **Deployment Method**: GitHub Actions workflow (.github/workflows/pages.yml)
+- **Branch**: gh-pages (root folder)
+- **Status**: Production ready with full GRIT implementation
+- **Version**: v2.0 Glassmorphism Edition
+- **Last Update**: 25.08.2025
+
+### 14) Key Features Summary
+- 🎯 **Goal Hierarchy**: Main → Quarterly → Daily actions
+- 📊 **GRIT Scoring**: 4-component algorithm (0-100 scale)
+- 🔥 **Streak Tracking**: Current/longest with comeback support
+- 📈 **Analytics**: Insights, patterns, recommendations
+- 🎨 **Glassmorphism Design**: Modern UI with blur effects
+- 📱 **Mobile Optimized**: Touch-friendly Telegram WebApp interface
+- 💾 **Data Persistence**: Complete localStorage with migration
+- 🚀 **Production Ready**: Error handling, validation, performance optimized
 
 
