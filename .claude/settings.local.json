@@ -15,6 +15,9 @@
       "Bash(git tag:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\code"
+    ]
   }
 }
