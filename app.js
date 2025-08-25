@@ -55,43 +55,62 @@ const gritData = {
     }
   },
   
-  // GRIT Score Calculator
+  // GRIT Score Calculator with edge case handling
   calculateGritScore() {
-    const today = new Date().toDateString();
-    const recentLogs = this.dailyLogs.filter(log => 
-      new Date(log.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-    );
-    
-    // Passion Score (0-25)
-    let passionScore = 0;
-    if (this.profile.mainGoal.text) passionScore += 10;
-    if (this.profile.quarterlyGoals.length > 0) passionScore += 10;
-    if (recentLogs.length > 20) passionScore += 5;
-    
-    // Perseverance Score (0-25)  
-    let perseveranceScore = 0;
-    perseveranceScore += Math.min(this.profile.streak.current, 15);
-    perseveranceScore += Math.min(this.profile.streak.comebacks * 2, 10);
-    
-    // Consistency Score (0-25)
-    let consistencyScore = 0;
-    const consistentDays = recentLogs.filter(log => 
-      log.actions.primary > 0 || log.actions.secondary > 0 || log.actions.focusMinutes > 0
-    ).length;
-    consistencyScore += Math.min(consistentDays, 15);
-    consistencyScore += Math.min(recentLogs.length / 3, 10);
-    
-    // Growth Score (0-25)
-    let growthScore = 0;
-    if (recentLogs.length > 0) {
-      const avgReflection = recentLogs.filter(log => log.reflection).length / recentLogs.length;
-      growthScore += avgReflection * 15;
-      if (this.profile.quarterlyGoals.some(g => g.progress > 50)) growthScore += 10;
+    try {
+      const recentLogs = this.dailyLogs.filter(log => {
+        try {
+          return new Date(log.date) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        } catch (e) {
+          return false;
+        }
+      });
+      
+      // Passion Score (0-25) - Goal clarity and emotional connection
+      let passionScore = 0;
+      if (this.profile.mainGoal?.text) passionScore += 10;
+      if (this.profile.quarterlyGoals?.length > 0) passionScore += 10;
+      if (recentLogs.length > 20) passionScore += 5;
+      
+      // Perseverance Score (0-25) - Resilience and comeback ability
+      let perseveranceScore = 0;
+      const currentStreak = Math.max(0, this.profile.streak?.current || 0);
+      const comebacks = Math.max(0, this.profile.streak?.comebacks || 0);
+      perseveranceScore += Math.min(currentStreak, 15);
+      perseveranceScore += Math.min(comebacks * 2, 10);
+      
+      // Consistency Score (0-25) - Daily execution reliability
+      let consistencyScore = 0;
+      const consistentDays = recentLogs.filter(log => {
+        try {
+          const actions = log.actions || {};
+          return (actions.primary > 0) || (actions.secondary > 0) || (actions.focusMinutes > 0);
+        } catch (e) {
+          return false;
+        }
+      }).length;
+      consistencyScore += Math.min(consistentDays, 15);
+      consistencyScore += Math.min(Math.floor(recentLogs.length / 3), 10);
+      
+      // Growth Score (0-25) - Learning and adaptation
+      let growthScore = 0;
+      if (recentLogs.length > 0) {
+        const reflectionDays = recentLogs.filter(log => log.reflection && log.reflection.trim()).length;
+        const avgReflection = reflectionDays / recentLogs.length;
+        growthScore += Math.floor(avgReflection * 15);
+        
+        const progressGoals = (this.profile.quarterlyGoals || []).filter(g => g.progress > 50);
+        if (progressGoals.length > 0) growthScore += 10;
+      }
+      
+      const totalScore = Math.max(0, Math.min(100, Math.round(passionScore + perseveranceScore + consistencyScore + growthScore)));
+      this.profile.totalScore = totalScore;
+      return totalScore;
+      
+    } catch (error) {
+      console.warn('Error calculating GRIT score:', error);
+      return 0;
     }
-    
-    const totalScore = Math.round(passionScore + perseveranceScore + consistencyScore + growthScore);
-    this.profile.totalScore = totalScore;
-    return totalScore;
   },
   
   getGritLevel(score) {
@@ -183,16 +202,24 @@ const gritData = {
 // UI Management
 const gritUI = {
   updateHeader() {
-    const score = gritData.calculateGritScore();
-    const level = gritData.getGritLevel(score);
-    
-    document.getElementById('score-value').textContent = score;
-    document.getElementById('grit-level').textContent = level;
-    document.getElementById('streak-count').textContent = gritData.profile.streak.current;
-    
-    const goalText = document.getElementById('goal-text');
-    if (gritData.profile.mainGoal.text) {
-      goalText.textContent = gritData.profile.mainGoal.text;
+    try {
+      const score = gritData.calculateGritScore();
+      const level = gritData.getGritLevel(score);
+      
+      const scoreEl = document.getElementById('score-value');
+      const levelEl = document.getElementById('grit-level');
+      const streakEl = document.getElementById('streak-count');
+      const goalTextEl = document.getElementById('goal-text');
+      
+      if (scoreEl) scoreEl.textContent = score;
+      if (levelEl) levelEl.textContent = level;
+      if (streakEl) streakEl.textContent = gritData.profile.streak?.current || 0;
+      
+      if (goalTextEl && gritData.profile.mainGoal?.text) {
+        goalTextEl.textContent = gritData.profile.mainGoal.text;
+      }
+    } catch (error) {
+      console.warn('Error updating header:', error);
     }
   },
   
@@ -336,19 +363,29 @@ const gritUI = {
   },
   
   updateAnalytics() {
-    const profile = gritData.profile;
-    const logs = gritData.dailyLogs;
-    
-    document.getElementById('longest-streak').textContent = profile.streak.longest;
-    document.getElementById('total-days').textContent = logs.length;
-    document.getElementById('comebacks').textContent = profile.streak.comebacks;
-    
-    const completedGoals = profile.quarterlyGoals.filter(g => g.progress >= 100).length;
-    document.getElementById('goals-completed').textContent = completedGoals;
-    
-    // Update motivation message based on GRIT score
-    this.updateMotivationMessage();
-    this.updateJourneyTimeline();
+    try {
+      const profile = gritData.profile;
+      const logs = gritData.dailyLogs || [];
+      
+      const longestStreakEl = document.getElementById('longest-streak');
+      const totalDaysEl = document.getElementById('total-days');
+      const comebacksEl = document.getElementById('comebacks');
+      const goalsCompletedEl = document.getElementById('goals-completed');
+      
+      if (longestStreakEl) longestStreakEl.textContent = profile.streak?.longest || 0;
+      if (totalDaysEl) totalDaysEl.textContent = logs.length;
+      if (comebacksEl) comebacksEl.textContent = profile.streak?.comebacks || 0;
+      
+      const completedGoals = (profile.quarterlyGoals || []).filter(g => g.progress >= 100).length;
+      if (goalsCompletedEl) goalsCompletedEl.textContent = completedGoals;
+      
+      // Update motivation message based on GRIT score
+      this.updateMotivationMessage();
+      this.updateJourneyTimeline();
+      
+    } catch (error) {
+      console.warn('Error updating analytics:', error);
+    }
   },
   
   updateMotivationMessage() {
@@ -386,48 +423,64 @@ const gritUI = {
   },
   
   updateJourneyTimeline() {
-    const timeline = document.getElementById('journey-timeline');
-    const profile = gritData.profile;
-    const logs = gritData.dailyLogs.slice(-7).reverse(); // Last 7 days
-    
-    timeline.innerHTML = '';
-    
-    // Add creation milestone
-    if (profile.createdAt) {
-      const createDate = new Date(profile.createdAt);
-      const daysAgo = Math.floor((Date.now() - createDate.getTime()) / (1000 * 60 * 60 * 24));
+    try {
+      const timeline = document.getElementById('journey-timeline');
+      if (!timeline) return;
       
-      const item = document.createElement('div');
-      item.className = 'timeline-item';
-      item.innerHTML = `
-        <div class="timeline-date">${daysAgo} дней назад</div>
-        <div class="timeline-content">🎯 Поставили главную цель: "${profile.mainGoal.text}"</div>
-      `;
-      timeline.appendChild(item);
-    }
-    
-    // Add recent activity
-    logs.forEach(log => {
-      const date = new Date(log.date);
-      const dayName = date.toLocaleDateString('ru', { weekday: 'short', day: 'numeric' });
+      const profile = gritData.profile;
+      const logs = (gritData.dailyLogs || []).slice(-7).reverse(); // Last 7 days
       
-      const hasActivity = log.actions.primary > 0 || log.actions.secondary > 0 || log.actions.focusMinutes > 0;
-      const emoji = hasActivity ? '✅' : '⭕';
-      const message = hasActivity ? 
-        `Выполнено: ${log.actions.primary + log.actions.secondary} действий, ${log.actions.focusMinutes} мин фокуса` :
-        'День пропущен';
+      timeline.innerHTML = '';
       
-      const item = document.createElement('div');
-      item.className = 'timeline-item';
-      item.innerHTML = `
-        <div class="timeline-date">${dayName}</div>
-        <div class="timeline-content">${emoji} ${message}</div>
-      `;
-      timeline.appendChild(item);
-    });
-    
-    if (logs.length === 0) {
-      timeline.innerHTML = '<div class="timeline-item"><div class="timeline-content">Начните отмечать прогресс каждый день!</div></div>';
+      // Add creation milestone
+      if (profile.createdAt) {
+        try {
+          const createDate = new Date(profile.createdAt);
+          const daysAgo = Math.floor((Date.now() - createDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          const item = document.createElement('div');
+          item.className = 'timeline-item';
+          item.innerHTML = `
+            <div class="timeline-date">${daysAgo} дней назад</div>
+            <div class="timeline-content">🎯 Поставили главную цель: "${profile.mainGoal?.text || 'Цель'}"</div>
+          `;
+          timeline.appendChild(item);
+        } catch (e) {
+          console.warn('Error adding creation milestone:', e);
+        }
+      }
+      
+      // Add recent activity
+      logs.forEach(log => {
+        try {
+          const date = new Date(log.date);
+          const dayName = date.toLocaleDateString('ru', { weekday: 'short', day: 'numeric' });
+          
+          const actions = log.actions || {};
+          const hasActivity = (actions.primary > 0) || (actions.secondary > 0) || (actions.focusMinutes > 0);
+          const emoji = hasActivity ? '✅' : '⭕';
+          const message = hasActivity ? 
+            `Выполнено: ${(actions.primary || 0) + (actions.secondary || 0)} действий, ${actions.focusMinutes || 0} мин фокуса` :
+            'День пропущен';
+          
+          const item = document.createElement('div');
+          item.className = 'timeline-item';
+          item.innerHTML = `
+            <div class="timeline-date">${dayName}</div>
+            <div class="timeline-content">${emoji} ${message}</div>
+          `;
+          timeline.appendChild(item);
+        } catch (e) {
+          console.warn('Error adding timeline item:', e);
+        }
+      });
+      
+      if (logs.length === 0) {
+        timeline.innerHTML = '<div class="timeline-item"><div class="timeline-content">Начните отмечать прогресс каждый день!</div></div>';
+      }
+      
+    } catch (error) {
+      console.warn('Error updating journey timeline:', error);
     }
   },
   
@@ -516,8 +569,12 @@ const dailyProgress = {
     this.updateDisplay();
     this.save();
     
-    // Log to GRIT system
-    gritData.logDay(this.current, 5, '', '');
+    // Log to GRIT system  
+    gritData.logDay({
+      primary: this.current.touches,
+      secondary: this.current.demos,
+      focusMinutes: this.current.focus_minutes
+    }, 5, '', '');
     gritUI.updateHeader();
   },
   
@@ -564,19 +621,54 @@ const dailyProgress = {
   },
   
   celebratePerfectDay() {
+    // Prevent multiple celebrations for the same day
+    const today = new Date().toDateString();
+    const todayLog = gritData.dailyLogs.find(log => log.date === today);
+    
+    if (todayLog && todayLog.perfectDayCelebrated) {
+      return; // Already celebrated today
+    }
+    
     // Update streak
+    const oldStreak = gritData.profile.streak.current;
     gritData.profile.streak.current += 1;
     if (gritData.profile.streak.current > gritData.profile.streak.longest) {
       gritData.profile.streak.longest = gritData.profile.streak.current;
     }
+    
+    // Mark celebration for today
+    if (todayLog) {
+      todayLog.perfectDayCelebrated = true;
+    }
+    
     gritData.save();
     gritUI.updateHeader();
+    gritUI.updateAnalytics();
     
-    showToast(`🔥 Perfect Day! Streak: ${gritData.profile.streak.current} дней!`, 'success');
+    // Enhanced celebration message
+    let celebrationMessage = `🔥 Perfect Day! Streak: ${gritData.profile.streak.current} дней!`;
+    
+    if (gritData.profile.streak.current === 7) {
+      celebrationMessage = '🌟 Неделя подряд! Вы развиваете настоящий GRIT!';
+    } else if (gritData.profile.streak.current === 30) {
+      celebrationMessage = '👑 Месяц подряд! Вы мастер настойчивости!';
+    } else if (gritData.profile.streak.current > oldStreak && gritData.profile.streak.current > gritData.profile.streak.longest - 1) {
+      celebrationMessage = '🎆 Новый рекорд streak! Невероятная настойчивость!';
+    }
+    
+    showToast(celebrationMessage, 'success');
     
     // Trigger celebration animation
     const indicator = document.getElementById('perfect-day-indicator');
-    indicator.style.animation = 'celebrate 0.5s ease-in-out 3';
+    if (indicator) {
+      indicator.style.animation = 'celebrate 0.5s ease-in-out 3';
+      setTimeout(() => {
+        indicator.style.animation = '';
+      }, 1500);
+    }
+    
+    // Haptic feedback for extra satisfaction
+    tg?.HapticFeedback?.notificationOccurred('success');
   },
   
   save() {
@@ -685,6 +777,19 @@ function onReady() {
     
     if (!mainGoal) {
       showToast('🎯 Пожалуйста, укажите вашу главную цель', 'warning');
+      document.getElementById('main-goal').style.animation = 'errorShake 0.5s ease-in-out';
+      setTimeout(() => {
+        document.getElementById('main-goal').style.animation = '';
+      }, 500);
+      return;
+    }
+    
+    if (!action1Name) {
+      showToast('📊 Пожалуйста, укажите основные действия', 'warning');
+      document.getElementById('action1-name').style.animation = 'errorShake 0.5s ease-in-out';
+      setTimeout(() => {
+        document.getElementById('action1-name').style.animation = '';
+      }, 500);
       return;
     }
     

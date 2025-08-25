@@ -746,6 +746,76 @@ input::placeholder {
 .grit-level-focused { color: #f59e0b; }
 .grit-level-master { color: #ef4444; }
 .grit-level-champion { color: #8b5cf6; }
+
+/* Error Animations */
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+/* Level Up Animation */
+@keyframes levelUp {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Quarterly Goals Additional Styles */
+.quarterly-goal-item .goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.quarterly-goal-item .goal-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  margin-right: 12px;
+}
+
+.quarterly-goal-item .days-left {
+  font-size: 11px;
+  padding: 4px 8px;
+  background: var(--success);
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.quarterly-goal-item .days-left.overdue {
+  background: var(--error);
+}
+
+.quarterly-goal-item .goal-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.quarterly-goal-item .goal-progress .progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.quarterly-goal-item .goal-progress .progress-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 35px;
+}
+
+.quarterly-goal-item .goal-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
     </style>
   </head>
   <body>
