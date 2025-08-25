@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🔥 GRIT + GTD v3.0 | Super Productivity System</title>
+    <link rel="preconnect" href="https://telegram.org" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+:root {
+  --bg-primary: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  --bg-glass: rgba(0, 0, 0, 0.4);
+  --bg-elevated: rgba(0, 0, 0, 0.6);
+  --text-primary: #ffffff;
+  --text-secondary: #e2e8f0;
+  --text-muted: #cbd5e1;
+  --primary: #ff6b6b;
+  --primary-gradient: linear-gradient(135deg, #ff6b6b, #feca57);
+  --success: #26de81;
+  --success-gradient: linear-gradient(135deg, #26de81, #2bcbba);
+  --error: #ff5252;
+  --warning: #ffa726;
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --radius-xl: 32px;
+  --radius-2xl: 40px;
+  --space-md: 20px;
+  --space-lg: 32px;
+  --space-xl: 48px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  width: 100vw;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 107, 107, 0.3), transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(42, 252, 152, 0.3), transparent 50%);
+  z-index: -1;
+  animation: bgMove 15s ease-in-out infinite;
+}
+
+@keyframes bgMove {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-md);
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header {
+  text-align: center;
+  padding: var(--space-xl);
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--glass-shadow);
+  margin-bottom: var(--space-xl);
+}
+
+.header h1 {
+  font-size: 36px;
+  font-weight: 800;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+}
+
+.version-badge {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--primary-gradient);
+  color: white;
+  border-radius: 50px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin: 8px 4px;
+  animation: badgePulse 3s infinite;
+}
+
+.commit-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--success-gradient);
+  color: white;
+  border-radius: 50px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 8px 4px;
+  opacity: 0.8;
+  font-family: 'Monaco', 'Consolas', monospace;
+}
+
+.user-info {
+  margin: 8px 0;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.grit-score {
+  margin: 16px 0;
+  padding: 12px 20px;
+  background: var(--bg-elevated);
+  border-radius: 20px;
+  border: 1px solid var(--glass-border);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.grit-score #score-value {
+  color: var(--primary);
+  font-size: 24px;
+  margin-left: 8px;
+}
+
+.main-goal-display {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--bg-elevated);
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.main-goal-display #goal-text {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.edit-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.edit-btn:hover {
+  transform: scale(1.1);
+  background: var(--primary-light);
+}
+
+.streak-display {
+  margin: 12px 0;
+  padding: 12px;
+  background: rgba(38, 222, 129, 0.1);
+  border: 1px solid rgba(38, 222, 129, 0.3);
+  border-radius: 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.streak-display #streak-count {
+  color: var(--success);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.streak-display #grit-level {
+  color: var(--success);
+  font-weight: 700;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+.subtitle {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-top: 12px;
+}
+
+.card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  margin: var(--space-lg) 0;
+  box-shadow: var(--glass-shadow);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 40px rgba(255, 107, 107, 0.2), var(--glass-shadow);
+}
+
+.card h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-grid .full { grid-column: 1 / -1; }
+
+@media (max-width: 480px) {
+  .form-grid { grid-template-columns: 1fr; }
+  
+  .modal-card.compact {
+    max-width: calc(100vw - 20px);
+    padding: 20px 16px;
+    margin: 10px;
+    max-height: 95vh;
+  }
+  
+  .modal-card.compact h2 {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+  
+  .modal-card.compact .goal-setup {
+    padding: 12px;
+    margin: 8px 0;
+  }
+  
+  .modal-card.compact .goal-input {
+    margin: 10px 0;
+  }
+}
+
+@media (max-height: 600px) {
+  .modal-card.compact {
+    padding: 16px 12px;
+    max-height: 95vh;
+  }
+  
+  .modal-card.compact .goal-input {
+    margin: 8px 0;
+  }
+  
+  .modal-card.compact .onb-tip {
+    padding: 8px;
+    margin: 8px 0;
+    font-size: 11px;
+  }
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+input, select {
+  padding: 14px 16px;
+  border: 2px solid var(--glass-border);
+  border-radius: 20px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(10px);
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.2);
+  transform: translateY(-2px);
+}
+
+input::placeholder {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.btn {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn.primary {
+  background: var(--primary-gradient);
+  color: white;
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.3);
+}
+
+.btn.success {
+  background: var(--success-gradient);
+  color: white;
+  box-shadow: 0 8px 25px rgba(38, 222, 129, 0.3);
+}
+
+.btn:hover {
+  transform: translateY(-3px) scale(1.02);
+}
+
+.btn:active {
+  transform: translateY(-1px) scale(1.01);
+}
+
+.progress-item {
+  padding: 20px;
+  background: var(--bg-elevated);
+  border-radius: 20px;
+  margin: 12px 0;
+  border: 1px solid var(--glass-border);
+  transition: all 0.3s ease;
+}
+
+.progress-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.progress-label span:last-child {
+  padding: 4px 8px;
+  background: var(--bg-glass);
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.progress-bar {
+  height: 10px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-gradient);
+  border-radius: 5px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.progress-fill.complete {
+  background: var(--success-gradient);
+}
+
+.perfect-day {
+  background: var(--success-gradient);
+  padding: 20px;
+  border-radius: 20px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 800;
+  margin: 20px 0;
+  animation: celebrate 2s infinite;
+  box-shadow: 0 10px 30px rgba(38, 222, 129, 0.3);
+}
+
+@keyframes celebrate {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+.modal.hidden { display: none; }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-card {
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-xl);
+  max-width: 400px;
+  margin: 20px;
+  box-shadow: var(--glass-shadow);
+  animation: modalSlide 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-card.compact {
+  padding: 24px 20px;
+  max-width: 360px;
+}
+
+.modal-card.compact h2 {
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.modal-card.compact .goal-setup {
+  padding: 16px;
+  margin: 12px 0;
+}
+
+.modal-card.compact .goal-input {
+  margin: 12px 0;
+}
+
+.modal-card.compact .goal-input span {
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.modal-card.compact input,
+.modal-card.compact select {
+  padding: 12px 16px;
+  font-size: 15px;
+}
+
+.modal-card.compact .onb-tip {
+  font-size: 12px;
+  padding: 12px;
+  margin: 12px 0;
+}
+
+@keyframes modalSlide {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-card h2 {
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 24px;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.goal-setup {
+  padding: 20px;
+  background: var(--bg-elevated);
+  border-radius: 16px;
+  margin: 20px 0;
+}
+
+.goal-input {
+  margin: 16px 0;
+}
+
+.goal-input span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.onb-list {
+  list-style: none;
+  padding: 16px;
+  background: var(--bg-elevated);
+  border-radius: 12px;
+  margin: 16px 0;
+}
+
+.onb-list li {
+  margin: 8px 0;
+  padding: 6px 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.onb-list li:last-child { border-bottom: none; }
+
+.onb-list strong {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.onb-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 12px 20px;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 14px;
+  z-index: 2000;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toast-show { 
+  opacity: 1; 
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast-success { border-left: 3px solid var(--success); }
+.toast-error { border-left: 3px solid var(--error); }
+.toast-warning { border-left: 3px solid var(--warning); }
+
+.hidden { display: none !important; }
+
+/* Loading states */
+.btn-loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.input-success {
+  border-color: var(--success) !important;
+  box-shadow: 0 0 0 3px rgba(38, 222, 129, 0.2) !important;
+}
+
+.input-error {
+  border-color: var(--error) !important;
+  box-shadow: 0 0 0 3px rgba(255, 82, 82, 0.2) !important;
+}
+
+/* Quarterly Goals Styles */
+.quarterly-goal-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 12px 0;
+  transition: all 0.3s ease;
+}
+
+.quarterly-goal-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+}
+
+.goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.goal-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.days-left {
+  font-size: 12px;
+  padding: 4px 8px;
+  background: var(--success);
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.days-left.overdue {
+  background: var(--error);
+}
+
+.goal-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.goal-progress .progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+}
+
+.goal-progress .progress-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 35px;
+}
+
+.goal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.mini-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--primary);
+  color: white;
+}
+
+.mini-btn:hover {
+  transform: translateY(-1px) scale(1.05);
+}
+
+.mini-btn.delete {
+  background: var(--error);
+}
+
+.no-goals {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 20px;
+}
+
+/* Analytics Styles */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.motivation-message {
+  background: var(--primary-gradient);
+  color: white;
+  padding: 16px;
+  border-radius: 16px;
+  text-align: center;
+  font-weight: 600;
+  margin: 16px 0;
+  box-shadow: 0 8px 25px rgba(255, 107, 107, 0.2);
+  animation: motivationGlow 4s ease-in-out infinite;
+}
+
+@keyframes motivationGlow {
+  0%, 100% { box-shadow: 0 8px 25px rgba(255, 107, 107, 0.2); }
+  50% { box-shadow: 0 12px 35px rgba(255, 107, 107, 0.4); }
+}
+
+/* Journey Timeline */
+.journey-timeline {
+  padding: 16px;
+  background: var(--bg-elevated);
+  border-radius: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.timeline-item {
+  padding: 12px;
+  border-left: 3px solid var(--primary);
+  margin: 8px 0;
+  margin-left: 16px;
+  position: relative;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 16px;
+  width: 12px;
+  height: 12px;
+  background: var(--primary);
+  border-radius: 50%;
+}
+
+.timeline-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.timeline-content {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+/* Insights Styles */
+.insights-list {
+  margin: 16px 0;
+}
+
+.insight-item {
+  padding: 12px;
+  margin: 8px 0;
+  background: var(--bg-elevated);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  border-left: 3px solid var(--primary);
+}
+
+/* Enhanced Modal Animations */
+.modal {
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* GRIT Level Colors */
+.grit-level-novice { color: #94a3b8; }
+.grit-level-developing { color: #3b82f6; }
+.grit-level-focused { color: #f59e0b; }
+.grit-level-master { color: #ef4444; }
+.grit-level-champion { color: #8b5cf6; }
+
+/* GTD Styles */
+.gtd-capture {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: stretch;
+}
+
+.gtd-capture input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 2px solid var(--glass-border);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: 14px;
+  min-width: 0;
+}
+
+.gtd-capture button {
+  padding: 12px 16px;
+  font-size: 16px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 50px;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inbox-list, .actions-list {
+  min-height: 60px;
+}
+
+.inbox-item, .action-item {
+  padding: 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.3s ease;
+}
+
+.inbox-item:hover, .action-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+.inbox-item .item-text, .action-item .item-text {
+  flex: 1;
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.inbox-item .item-actions, .action-item .item-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.empty-inbox, .empty-actions {
+  text-align: center;
+  color: var(--text-muted);
+  font-style: italic;
+  padding: 20px;
+  font-size: 14px;
+}
+
+/* Context badges */
+.context-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.context-badge.energy-high { background: var(--success); }
+.context-badge.energy-medium { background: var(--warning); }
+.context-badge.energy-low { background: var(--error); }
+
+/* Priority indicators */
+.priority-a { border-left: 4px solid #ef4444; }
+.priority-b { border-left: 4px solid #f59e0b; }
+.priority-c { border-left: 4px solid #3b82f6; }
+.priority-d { border-left: 4px solid #64748b; }
+
+/* Clarify modal styles */
+.clarify-item {
+  background: var(--bg-elevated);
+  padding: 16px;
+  border-radius: 12px;
+  margin: 16px 0;
+  font-style: italic;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--primary);
+}
+
+.clarify-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.clarify-options .btn {
+  padding: 10px 16px;
+  font-size: 12px;
+}
+
+/* Custom Date Picker */
+.custom-date-picker {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.custom-date-picker input {
+  flex: 1;
+  cursor: pointer;
+}
+
+.date-picker-btn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.date-picker-btn:hover {
+  transform: scale(1.1);
+  background: var(--primary-light);
+}
+
+.date-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 16px;
+  z-index: 1000;
+  box-shadow: var(--glass-shadow);
+  margin-top: 8px;
+}
+
+.quick-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.quick-date-btn {
+  padding: 8px 12px;
+  background: var(--bg-glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.quick-date-btn:hover {
+  background: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.month-picker {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.month-picker select {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg-glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+/* Error Animations */
+@keyframes errorShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+
+/* Level Up Animation */
+@keyframes levelUp {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Quarterly Goals Additional Styles */
+.quarterly-goal-item .goal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.quarterly-goal-item .goal-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  margin-right: 12px;
+}
+
+.quarterly-goal-item .days-left {
+  font-size: 11px;
+  padding: 4px 8px;
+  background: var(--success);
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.quarterly-goal-item .days-left.overdue {
+  background: var(--error);
+}
+
+.quarterly-goal-item .goal-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.quarterly-goal-item .goal-progress .progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.quarterly-goal-item .goal-progress .progress-text {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  min-width: 35px;
+}
+
+.quarterly-goal-item .goal-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+    </style>
+  </head>
+  <body>
+    <main class="container" id="app-root">
+      <div id="onboarding-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="onb-title">
+        <div class="modal-card compact">
+          <h2 id="onb-title">🔥 GRIT Setup</h2>
+          
+          <div id="goal-setup" class="goal-setup">
+            <label class="goal-input">
+              <span>🎯 Главная цель:</span>
+              <input id="main-goal" type="text" placeholder="Запустить стартап" maxlength="100" />
+            </label>
+            
+            <label class="goal-input">
+              <span>Основные действия:</span>
+              <input id="action1-name" type="text" placeholder="звонки клиентам" maxlength="50" />
+            </label>
+            
+            <label class="goal-input">
+              <span>Вспомогательные:</span>
+              <input id="action2-name" type="text" placeholder="встречи с партнерами" maxlength="50" />
+            </label>
+            
+            <label class="goal-input">
+              <span>Тип фокуса:</span>
+              <select id="focus-type">
+                <option value="работа">Фокусная работа</option>
+                <option value="изучение">Изучение</option>
+                <option value="разработка">Разработка</option>
+                <option value="планирование">Планирование</option>
+                <option value="практика">Практика</option>
+              </select>
+            </label>
+          </div>
+          
+          <div class="onb-tip">
+            💡 GRIT = страсть + настойчивость к долгосрочным целям
+          </div>
+          
+          <div class="onb-actions">
+            <button id="onb-ok" class="btn primary">🚀 Начать</button>
+          </div>
+        </div>
+      </div>
+
+      <header class="header">
+        <h1>🔥 GRIT + GTD</h1>
+        <div class="grit-score" id="grit-score">GRIT Score: <span id="score-value">0</span></div>
+        <div class="main-goal-display" id="main-goal-display">
+          <span id="goal-text">Настройте вашу главную цель</span>
+          <button id="edit-goal-btn" class="edit-btn" onclick="window.editGoal()">✏️</button>
+        </div>
+        <div class="streak-display" id="streak-display">
+          🔥 Streak: <span id="streak-count">0</span> дней | Уровень: <span id="grit-level">Новичок</span>
+        </div>
+      </header>
+
+      <section class="card">
+        <h2>📥 Входящие</h2>
+        <div class="gtd-capture">
+          <input id="quick-capture" type="text" placeholder="Записать мысль или задачу..." maxlength="200" />
+          <button id="capture-btn" class="btn primary">➕</button>
+        </div>
+        <div id="inbox-items" class="inbox-list">
+          <div class="empty-inbox">Входящие пусты - отлично! 🎯</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>⚡ Следующие действия</h2>
+        <div id="next-actions" class="actions-list">
+          <div class="empty-actions">Пока нет действий. Обработайте входящие!</div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>📋 План на сегодня</h2>
+        <form id="plan-form" class="form-grid" autocomplete="off">
+          <label>
+            <span id="plan-action1-label">Основные действия (шт)</span>
+            <input id="plan-touches" type="number" min="0" placeholder="10" />
+          </label>
+          <label>
+            <span id="plan-action2-label">Вспомогательные (шт)</span>
+            <input id="plan-demos" type="number" min="0" placeholder="2" />
+          </label>
+          <label class="full">
+            <span id="plan-focus-label">Время фокуса (мин)</span>
+            <input id="plan-focus" type="number" min="0" placeholder="90" />
+          </label>
+          <button type="submit" class="btn primary">💾 Сохранить план</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>🎲 Промежуточные цели</h2>
+        <div id="quarterly-goals">
+          <div class="quarterly-goal-item" style="border: 2px dashed var(--glass-border); padding: 20px; text-align: center; opacity: 0.7;">
+            <span>+ Добавить промежуточную цель</span>
+          </div>
+        </div>
+        <button id="add-quarterly-goal" class="btn primary" onclick="window.addQuarterlyGoal()" style="margin-top: 16px; width: 100%;">
+          ➕ Добавить цель на квартал
+        </button>
+      </section>
+
+      <section class="card">
+        <h2>📊 Прогресс за сегодня</h2>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span id="progress-action1-label">Основные действия</span>
+            <span id="touches-progress">0 / 0</span>
+          </div>
+          <div class="progress-bar">
+            <div id="touches-bar" class="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span id="progress-action2-label">Вспомогательные</span>
+            <span id="demos-progress">0 / 0</span>
+          </div>
+          <div class="progress-bar">
+            <div id="demos-bar" class="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+        <div class="progress-item">
+          <div class="progress-label">
+            <span id="progress-focus-label">Время фокуса</span>
+            <span id="focus-progress">0 / 0 мин</span>
+          </div>
+          <div class="progress-bar">
+            <div id="focus-bar" class="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+        <div id="perfect-day-indicator" class="perfect-day hidden">
+          🎯 Идеальный день! Все цели достигнуты!
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>✅ Отметить выполненное</h2>
+        <form id="fact-form" class="form-grid" autocomplete="off">
+          <label>
+            <span id="fact-action1-label">Основные +</span>
+            <input id="fact-touches" type="number" min="0" placeholder="5" />
+          </label>
+          <label>
+            <span id="fact-action2-label">Вспомогательные +</span>
+            <input id="fact-demos" type="number" min="0" placeholder="1" />
+          </label>
+          <label class="full">
+            <span id="fact-focus-label">Фокус + (мин)</span>
+            <input id="fact-focus" type="number" min="0" placeholder="30" />
+          </label>
+          <button type="submit" class="btn success">✅ Добавить</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>📈 GRIT Analytics</h2>
+        <div class="analytics-grid">
+          <div class="stat-item">
+            <div class="stat-value" id="longest-streak">0</div>
+            <div class="stat-label">Лучший Streak</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="total-days">0</div>
+            <div class="stat-label">Дней в пути</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="comebacks">0</div>
+            <div class="stat-label">Comebacks</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="goals-completed">0</div>
+            <div class="stat-label">Цели достигнуто</div>
+          </div>
+        </div>
+        
+        <div class="motivation-message" id="motivation-message">
+          💪 Каждый день - это возможность стать лучше!
+        </div>
+        
+        <button id="show-insights" class="btn primary" onclick="window.showInsights()" style="width: 100%; margin-top: 16px;">
+          🧠 Показать инсайты
+        </button>
+      </section>
+
+      <section class="card">
+        <h2>🌟 Ваш GRIT Journey</h2>
+        <div class="journey-timeline" id="journey-timeline">
+          <div class="timeline-item">
+            <div class="timeline-date">Сегодня</div>
+            <div class="timeline-content">Начало вашего GRIT пути! 🚀</div>
+          </div>
+        </div>
+      </section>
+      
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
