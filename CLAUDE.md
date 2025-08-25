@@ -3,25 +3,25 @@
 This document defines the development standards for the Personal Goal Tracker project (Telegram WebApp). This is a fully personalized goal tracking system with glassmorphism design that adapts to any user's objectives and terminology.
 
 ## ⚠️ DEPLOYMENT LESSONS LEARNED (из личного опыта):
-- **GitHub Pages для этого проекта**: main branch, ROOT папка
+- **GitHub Pages для этого проекта**: **gh-pages branch, ROOT папка** ✅
 - **ЕДИНСТВЕННЫЙ URL**: https://jimbokl.github.io/grit-miniapp/ 
-- **НЕ создавать лишние ветки** - использовать только main
 - **НЕ создавать лишние URL** - один проект = один URL
 - **GitHub Pages кеширование АГРЕССИВНОЕ** - встраивать стили для больших изменений
 - **Всегда проверять deployment target** перед изменениями
 
 **🤦‍♂️ Ошибки которые я сделал:**
-- Создал ненужную gh-pages ветку  
-- Обновлял неправильные папки
+- Путался между main и gh-pages ветками
+- Обновлял неправильные папки (miniapp вместо root)  
 - Создал лишние файлы и URL
-- Не проверил изначальные настройки GitHub Pages
+- Не проверил deployment settings изначально
+- Был "еблан" с GitHub Pages настройками 😅
 
 ### 1) Technology Stack
 - **Frontend**: Vanilla JavaScript ES6+, HTML5, CSS3 with Glassmorphism design system
 - **Design**: iOS/Material You inspired with vibrant gradients and blur effects
 - **Backend**: Python 3.11+ with `python-telegram-bot` for the bot API
 - **Database**: PostgreSQL (production) - no Redis/SQLite/Sheets in production
-- **Hosting**: GitHub Pages (main branch /miniapp folder), Railway/Render/Heroku for backend
+- **Hosting**: GitHub Pages (gh-pages branch, root folder), Railway/Render/Heroku for backend
 - **Telegram Integration**: WebApp SDK for frontend, Bot API for backend
 
 ### 2) Architecture
@@ -114,11 +114,11 @@ This document defines the development standards for the Personal Goal Tracker pr
 - **Monitoring**: Error tracking, performance monitoring
 
 **🚨 DEPLOYMENT GOTCHAS (исправлено):**
-- GitHub Pages for this project deploys from **main branch ROOT folder**
+- GitHub Pages for this project deploys from **gh-pages branch ROOT folder** ✅
 - ЕДИНСТВЕННЫЙ правильный URL: https://jimbokl.github.io/grit-miniapp/
-- CSS caching is aggressive - use embedded styles for major design changes
+- CSS caching is aggressive - use embedded styles for major design changes  
 - Always test deployment target before major updates
-- НЕ использовать gh-pages ветку для этого проекта
+- Обновлять файлы в ROOT папке gh-pages ветки, НЕ в подпапках
 
 ### 10) Development Workflow
 - **Branching**: Feature branches, PR reviews required
