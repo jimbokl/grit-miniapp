@@ -350,7 +350,7 @@ const gritGtdUI = {
       itemEl.innerHTML = `
         <div class="item-text">${item.text}</div>
         <div class="item-actions">
-          <button onclick="gritGtdUI.showClarifyModal('${item.id}')" class="mini-btn">🔍 Clarify</button>
+          <button onclick="gritGtdUI.showClarifyModal('${item.id}')" class="mini-btn">🔍 Обработать</button>
           <button onclick="gritGtdUI.deleteInboxItem('${item.id}')" class="mini-btn delete">🗑️</button>
         </div>
       `;
@@ -358,7 +358,7 @@ const gritGtdUI = {
     });
     
     if (gritGtdData.gtd.inbox.length === 0) {
-      container.innerHTML = '<div class="empty-inbox">Inbox пуст - отличная работа! 🎯</div>';
+      container.innerHTML = '<div class="empty-inbox">Входящие пусты - отлично! 🎯</div>';
     }
   },
   
@@ -377,14 +377,14 @@ const gritGtdUI = {
           <span class="context-badge energy-${action.energy}">${action.context}</span>
         </div>
         <div class="item-actions">
-          <button onclick="gritGtdUI.completeAction('${action.id}')" class="mini-btn">✅ Done</button>
+          <button onclick="gritGtdUI.completeAction('${action.id}')" class="mini-btn">✅ Готово</button>
         </div>
       `;
       container.appendChild(actionEl);
     });
     
     if (gritGtdData.gtd.nextActions.length === 0) {
-      container.innerHTML = '<div class="empty-actions">Пока нет next actions. Обработайте Inbox!</div>';
+      container.innerHTML = '<div class="empty-actions">Пока нет действий. Обработайте входящие!</div>';
     }
   },
   
@@ -396,13 +396,13 @@ const gritGtdUI = {
     modal.className = 'modal';
     modal.innerHTML = `
       <div class="modal-card compact">
-        <h2>🔍 Clarify Item</h2>
+        <h2>🔍 Обработать задачу</h2>
         <div class="clarify-item">"${item.text}"</div>
         <div class="clarify-options">
-          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'next')" class="btn primary">⚡ Next Action</button>
-          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'project')" class="btn primary">📋 Project</button>
-          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'someday')" class="btn ghost">🔮 Someday</button>
-          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'delete')" class="btn ghost">🗑️ Delete</button>
+          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'next')" class="btn primary">⚡ Действие</button>
+          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'project')" class="btn primary">📋 Проект</button>
+          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'someday')" class="btn ghost">🔮 Когда-нибудь</button>
+          <button onclick="gritGtdUI.clarifyAs('${itemId}', 'delete')" class="btn ghost">🗑️ Удалить</button>
         </div>
       </div>
     `;
@@ -421,13 +421,13 @@ const gritGtdUI = {
     this.renderNextActions();
     
     const actionNames = {
-      'next': '⚡ Next Action',
-      'project': '📋 Project', 
-      'someday': '🔮 Someday',
-      'delete': '🗑️ Deleted'
+      'next': '⚡ Следующее действие',
+      'project': '📋 Проект', 
+      'someday': '🔮 Когда-нибудь',
+      'delete': '🗑️ Удалено'
     };
     
-    showToast(`📝 Item clarified as ${actionNames[action]}`, 'success');
+    showToast(`📝 Обработано как ${actionNames[action]}`, 'success');
     
     // Close modal
     document.querySelector('.modal')?.remove();
@@ -437,7 +437,7 @@ const gritGtdUI = {
     gritGtdData.gtd.inbox = gritGtdData.gtd.inbox.filter(i => i.id !== itemId);
     gritGtdData.save();
     this.renderInbox();
-    showToast('🗑️ Item deleted', 'warning');
+    showToast('🗑️ Задача удалена', 'warning');
   },
   
   completeAction(actionId) {
@@ -445,7 +445,7 @@ const gritGtdUI = {
     if (success) {
       this.renderNextActions();
       this.updateHeader();
-      showToast('✅ Action completed! GTD in action!', 'success');
+      showToast('✅ Действие выполнено! GRIT+GTD работает!', 'success');
     }
   },
   
@@ -1014,7 +1014,7 @@ function onReady() {
       gritGtdData.captureItem(text);
       gritGtdUI.renderInbox();
       captureInput.value = '';
-      showToast('📥 Item captured! Time to clarify.', 'success');
+      showToast('📥 Записано во входящие! Обработайте позже.', 'success');
     }
   });
   

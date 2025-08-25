@@ -830,8 +830,9 @@ input::placeholder {
 /* GTD Styles */
 .gtd-capture {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   margin-bottom: 16px;
+  align-items: stretch;
 }
 
 .gtd-capture input {
@@ -842,12 +843,21 @@ input::placeholder {
   background: var(--bg-elevated);
   color: var(--text-primary);
   font-size: 14px;
+  min-width: 0;
 }
 
 .gtd-capture button {
-  padding: 12px 20px;
-  font-size: 12px;
+  padding: 12px 16px;
+  font-size: 16px;
   white-space: nowrap;
+  flex-shrink: 0;
+  min-width: 50px;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .inbox-list, .actions-list {
@@ -1066,20 +1076,20 @@ input::placeholder {
       </header>
 
       <section class="card">
-        <h2>📥 GTD Inbox</h2>
+        <h2>📥 Входящие</h2>
         <div class="gtd-capture">
-          <input id="quick-capture" type="text" placeholder="Быстро записать мысль/задачу..." maxlength="200" />
-          <button id="capture-btn" class="btn primary">📥 Capture</button>
+          <input id="quick-capture" type="text" placeholder="Записать мысль или задачу..." maxlength="200" />
+          <button id="capture-btn" class="btn primary">➕</button>
         </div>
         <div id="inbox-items" class="inbox-list">
-          <div class="empty-inbox">Inbox пуст - отличная работа! 🎯</div>
+          <div class="empty-inbox">Входящие пусты - отлично! 🎯</div>
         </div>
       </section>
 
       <section class="card">
-        <h2>⚡ Next Actions</h2>
+        <h2>⚡ Следующие действия</h2>
         <div id="next-actions" class="actions-list">
-          <div class="empty-actions">Пока нет next actions. Обработайте Inbox!</div>
+          <div class="empty-actions">Пока нет действий. Обработайте входящие!</div>
         </div>
       </section>
 
