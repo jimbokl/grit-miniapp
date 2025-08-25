@@ -11,7 +11,8 @@
       "Bash(git stash:*)",
       "WebFetch(domain:jimbokl.github.io)",
       "Bash(npm install:*)",
-      "WebFetch(domain:www.figma.com)"
+      "WebFetch(domain:www.figma.com)",
+      "Bash(git tag:*)"
     ],
     "deny": [],
     "ask": []
