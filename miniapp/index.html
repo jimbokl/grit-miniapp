@@ -52,6 +52,42 @@
         </form>
       </section>
 
+      <section class="card progress-card">
+        <h2>Прогресс за сегодня</h2>
+        <div class="progress-grid">
+          <div class="progress-item">
+            <div class="progress-label">
+              <span>Касания</span>
+              <span id="touches-progress">0 / 0</span>
+            </div>
+            <div class="progress-bar">
+              <div id="touches-bar" class="progress-fill" style="width: 0%"></div>
+            </div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label">
+              <span>Демо</span>
+              <span id="demos-progress">0 / 0</span>
+            </div>
+            <div class="progress-bar">
+              <div id="demos-bar" class="progress-fill" style="width: 0%"></div>
+            </div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label">
+              <span>Фокус</span>
+              <span id="focus-progress">0 / 0 мин</span>
+            </div>
+            <div class="progress-bar">
+              <div id="focus-bar" class="progress-fill" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+        <div id="perfect-day-indicator" class="perfect-day hidden">
+          🎯 Идеальный день!
+        </div>
+      </section>
+
       <section class="card">
         <h2>Факт — быстрые отметки</h2>
         <form id="fact-form" class="form-grid" autocomplete="off">
