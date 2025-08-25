@@ -28,7 +28,7 @@ function getTelegramUser() {
 // REAL Cloud Sync System 
 const cloudSync = {
   // Real backend API endpoint
-  baseUrl: 'http://212.34.150.91:5000/api',
+  baseUrl: 'http://212.34.150.91:5001/api',
   
   async saveToCloud(userData) {
     try {

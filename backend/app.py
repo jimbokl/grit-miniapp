@@ -44,7 +44,7 @@ def health_check():
         'timestamp': datetime.now().isoformat()
     })
 
-@app.route('/sync/<username>', methods=['POST'])
+@app.route('/api/sync/<username>', methods=['POST'])
 def save_user_data(username):
     """Save user data to cloud"""
     try:
@@ -83,7 +83,7 @@ def save_user_data(username):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/sync/<username>', methods=['GET'])
+@app.route('/api/sync/<username>', methods=['GET'])
 def load_user_data(username):
     """Load user data from cloud"""
     try:
@@ -114,7 +114,7 @@ def load_user_data(username):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/sync/<username>/exists', methods=['GET'])
+@app.route('/api/sync/<username>/exists', methods=['GET'])
 def check_user_exists(username):
     """Check if user has data in cloud"""
     try:

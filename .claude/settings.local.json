@@ -3,7 +3,9 @@
     "allow": [
       "Bash(curl:*)",
       "WebFetch(domain:github.com)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(scp:*)",
+      "Bash(ssh:*)"
     ],
     "deny": [],
     "ask": []
