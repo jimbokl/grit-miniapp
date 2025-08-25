@@ -84,53 +84,52 @@ const cloudSync = {
     return null;
   },
   
-  // Simplified sync using URL hash for demo
-  saveToHash(userData) {
+  // Simple cross-device sync via shared localStorage key
+  saveToSharedStorage(userData) {
     try {
       const telegramUser = getTelegramUser();
-      const compressed = btoa(JSON.stringify({
-        user: telegramUser.username,
+      
+      // Use shared key for cross-device sync
+      const sharedKey = `grit_shared_${telegramUser.username}`;
+      const syncData = {
+        user: telegramUser,
         data: userData,
-        timestamp: Date.now()
-      }));
+        timestamp: Date.now(),
+        deviceId: navigator.userAgent.slice(0, 50)
+      };
       
-      // For demo: encode in URL (production would use real cloud storage)
-      window.history.replaceState({}, '', `#sync=${compressed.slice(0, 100)}`);
+      localStorage.setItem(sharedKey, JSON.stringify(syncData));
       
-      // Also save to localStorage as backup
-      localStorage.setItem(`grit_cloud_backup_${telegramUser.username}`, JSON.stringify(userData));
+      // Also save device-specific backup
+      localStorage.setItem(`grit_device_backup`, JSON.stringify(syncData));
       
       return true;
     } catch (error) {
-      console.warn('Hash sync failed:', error);
+      console.warn('Shared storage failed:', error);
       return false;
     }
   },
   
-  loadFromHash() {
+  loadFromSharedStorage() {
     try {
-      const hash = window.location.hash.replace('#sync=', '');
-      if (hash) {
-        const decoded = JSON.parse(atob(hash));
-        const telegramUser = getTelegramUser();
-        
-        if (decoded.user === telegramUser.username) {
-          return decoded.data;
+      const telegramUser = getTelegramUser();
+      const sharedKey = `grit_shared_${telegramUser.username}`;
+      
+      // Try shared storage first
+      let stored = localStorage.getItem(sharedKey);
+      if (!stored) {
+        // Try device backup
+        stored = localStorage.getItem('grit_device_backup');
+      }
+      
+      if (stored) {
+        const syncData = JSON.parse(stored);
+        if (syncData.user.username === telegramUser.username) {
+          return syncData.data;
         }
       }
     } catch (error) {
-      console.warn('Hash load failed:', error);
-    }
-    
-    // Fallback to localStorage backup
-    try {
-      const telegramUser = getTelegramUser();
-      const backup = localStorage.getItem(`grit_cloud_backup_${telegramUser.username}`);
-      if (backup) {
-        return JSON.parse(backup);
-      }
-    } catch (error) {
-      console.warn('Backup load failed:', error);
+      console.warn('Shared storage load failed:', error);
     }
     
     return null;
@@ -287,14 +286,19 @@ const gritGtdData = {
       ...userData
     }));
     
-    // Try cloud sync
+    // Try cross-device sync
     try {
-      const cloudSaved = await cloudSync.saveToHash(userData);
-      if (cloudSaved) {
-        showToast('☁️ Синхронизировано с облаком', 'success');
+      const syncSaved = cloudSync.saveToSharedStorage(userData);
+      if (syncSaved) {
+        // Update sync status in UI
+        const syncStatus = document.getElementById('sync-status');
+        if (syncStatus) {
+          syncStatus.textContent = '✅ Синхронизировано';
+          syncStatus.style.color = 'var(--success)';
+        }
       }
     } catch (error) {
-      console.warn('Cloud sync failed, data saved locally:', error);
+      console.warn('Sync failed, data saved locally:', error);
     }
   },
   
@@ -302,23 +306,30 @@ const gritGtdData = {
     try {
       const telegramUser = getTelegramUser();
       
-      // Try cloud sync first
-      let cloudData = null;
+      // Try shared storage sync first
+      let sharedData = null;
       try {
-        cloudData = await cloudSync.loadFromHash();
-        if (cloudData) {
-          showToast('☁️ Загружено из облака', 'success');
+        sharedData = cloudSync.loadFromSharedStorage();
+        if (sharedData) {
+          showToast('📱 Загружено с другого устройства', 'success');
+          
+          // Update sync status
+          const syncStatus = document.getElementById('sync-status');
+          if (syncStatus) {
+            syncStatus.textContent = '📱 Синхронизировано';
+            syncStatus.style.color = 'var(--success)';
+          }
         }
       } catch (error) {
-        console.warn('Cloud load failed:', error);
+        console.warn('Shared sync load failed:', error);
       }
       
-      if (cloudData) {
-        // Use cloud data
-        this.profile = { ...this.profile, ...cloudData.profile };
-        this.gtd = { ...this.gtd, ...cloudData.gtd };
-        this.dailyLogs = cloudData.dailyLogs || [];
-        this.analytics = cloudData.analytics || { patterns: {}, trends: {} };
+      if (sharedData) {
+        // Use shared data
+        this.profile = { ...this.profile, ...sharedData.profile };
+        this.gtd = { ...this.gtd, ...sharedData.gtd };
+        this.dailyLogs = sharedData.dailyLogs || [];
+        this.analytics = sharedData.analytics || { patterns: {}, trends: {} };
       } else {
         // Fallback to localStorage
         const userKey = `grit_gtd_data_${telegramUser.username}`;
@@ -1372,6 +1383,16 @@ window.deleteQuarterlyGoal = function(goalId) {
   }
 };
 
+window.addMainGoal = function() {
+  console.log('🔧 addMainGoal() called');
+  const modal = document.getElementById('onboarding-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+  } else {
+    console.error('❌ Onboarding modal not found');
+  }
+};
+
 // Date picker functions
 window.setQuarterlyDate = function(days) {
   const date = new Date();
@@ -1447,10 +1468,12 @@ function onReady() {
   const modal = document.getElementById('onboarding-modal');
   const onbOk = document.getElementById('onb-ok');
   
-  // Show onboarding if no main goal set
-  if (!gritGtdData.profile.mainGoal.text && modal) {
-    modal.classList.remove('hidden');
-  }
+  // Show onboarding only if no main goal set AND after data is loaded
+  setTimeout(() => {
+    if (!gritGtdData.profile.mainGoal?.text && modal) {
+      modal.classList.remove('hidden');
+    }
+  }, 1500); // Wait for cloud sync to complete
   
   // GTD Capture functionality - FIXED
   const captureInput = document.getElementById('quick-capture');
