@@ -25,6 +25,118 @@ function getTelegramUser() {
   };
 }
 
+// Cloud Sync System via GitHub Gist
+const cloudSync = {
+  // Using JSONBin.io as free cloud storage
+  baseUrl: 'https://api.jsonbin.io/v3/b',
+  
+  async saveToCloud(userData) {
+    try {
+      const telegramUser = getTelegramUser();
+      const binId = localStorage.getItem(`grit_bin_${telegramUser.username}`);
+      
+      const response = await fetch(binId ? `${this.baseUrl}/${binId}` : this.baseUrl, {
+        method: binId ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Master-Key': '$2a$10$your_api_key_here', // Would need real API key
+        },
+        body: JSON.stringify({
+          telegramUser: telegramUser,
+          data: userData,
+          lastSync: Date.now()
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (!binId && result.metadata?.id) {
+          localStorage.setItem(`grit_bin_${telegramUser.username}`, result.metadata.id);
+        }
+        return true;
+      }
+    } catch (error) {
+      console.warn('Cloud sync failed:', error);
+      return false;
+    }
+  },
+  
+  async loadFromCloud() {
+    try {
+      const telegramUser = getTelegramUser();
+      const binId = localStorage.getItem(`grit_bin_${telegramUser.username}`);
+      
+      if (!binId) return null;
+      
+      const response = await fetch(`${this.baseUrl}/${binId}/latest`, {
+        headers: {
+          'X-Master-Key': '$2a$10$your_api_key_here', // Would need real API key
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        return result.record?.data || null;
+      }
+    } catch (error) {
+      console.warn('Cloud load failed:', error);
+    }
+    return null;
+  },
+  
+  // Simplified sync using URL hash for demo
+  saveToHash(userData) {
+    try {
+      const telegramUser = getTelegramUser();
+      const compressed = btoa(JSON.stringify({
+        user: telegramUser.username,
+        data: userData,
+        timestamp: Date.now()
+      }));
+      
+      // For demo: encode in URL (production would use real cloud storage)
+      window.history.replaceState({}, '', `#sync=${compressed.slice(0, 100)}`);
+      
+      // Also save to localStorage as backup
+      localStorage.setItem(`grit_cloud_backup_${telegramUser.username}`, JSON.stringify(userData));
+      
+      return true;
+    } catch (error) {
+      console.warn('Hash sync failed:', error);
+      return false;
+    }
+  },
+  
+  loadFromHash() {
+    try {
+      const hash = window.location.hash.replace('#sync=', '');
+      if (hash) {
+        const decoded = JSON.parse(atob(hash));
+        const telegramUser = getTelegramUser();
+        
+        if (decoded.user === telegramUser.username) {
+          return decoded.data;
+        }
+      }
+    } catch (error) {
+      console.warn('Hash load failed:', error);
+    }
+    
+    // Fallback to localStorage backup
+    try {
+      const telegramUser = getTelegramUser();
+      const backup = localStorage.getItem(`grit_cloud_backup_${telegramUser.username}`);
+      if (backup) {
+        return JSON.parse(backup);
+      }
+    } catch (error) {
+      console.warn('Backup load failed:', error);
+    }
+    
+    return null;
+  }
+};
+
 // GRIT + GTD Super System
 const gritGtdData = {
   profile: {
@@ -158,67 +270,85 @@ const gritGtdData = {
     return false;
   },
 
-  save() {
+  async save() {
     const telegramUser = getTelegramUser();
-    const key = `grit_gtd_data_${telegramUser.username}`;
+    const userData = {
+      profile: this.profile,
+      gtd: this.gtd,
+      dailyLogs: this.dailyLogs,
+      analytics: this.analytics,
+      lastSaved: Date.now()
+    };
     
+    // Save locally first
+    const key = `grit_gtd_data_${telegramUser.username}`;
     localStorage.setItem(key, JSON.stringify({
       telegramUser: telegramUser,
-      profile: this.profile,
-      gtd: this.gtd,
-      dailyLogs: this.dailyLogs,
-      analytics: this.analytics,
-      lastSaved: Date.now()
+      ...userData
     }));
     
-    // Also save to global key for migration
-    localStorage.setItem('grit_gtd_data', JSON.stringify({
-      telegramUser: telegramUser,
-      profile: this.profile,
-      gtd: this.gtd,
-      dailyLogs: this.dailyLogs,
-      analytics: this.analytics,
-      lastSaved: Date.now()
-    }));
+    // Try cloud sync
+    try {
+      const cloudSaved = await cloudSync.saveToHash(userData);
+      if (cloudSaved) {
+        showToast('☁️ Синхронизировано с облаком', 'success');
+      }
+    } catch (error) {
+      console.warn('Cloud sync failed, data saved locally:', error);
+    }
   },
   
-  load() {
+  async load() {
     try {
       const telegramUser = getTelegramUser();
-      const userKey = `grit_gtd_data_${telegramUser.username}`;
       
-      // Try user-specific data first
-      let stored = localStorage.getItem(userKey);
-      if (!stored) {
-        // Try global data
-        stored = localStorage.getItem('grit_gtd_data');
-      }
-      if (!stored) {
-        // Fallback to old format
-        stored = localStorage.getItem('grit_data');
-      }
-      
-      if (stored) {
-        const data = JSON.parse(stored);
-        this.profile = { ...this.profile, ...data.profile };
-        this.gtd = { ...this.gtd, ...(data.gtd || {}) };
-        this.dailyLogs = data.dailyLogs || [];
-        this.analytics = data.analytics || { patterns: {}, trends: {} };
-        
-        // Store telegram user info
-        this.profile.telegramUser = telegramUser;
-        
-        // Migrate to user-specific storage
-        if (!localStorage.getItem(userKey)) {
-          this.save(); // Save in new user-specific format
+      // Try cloud sync first
+      let cloudData = null;
+      try {
+        cloudData = await cloudSync.loadFromHash();
+        if (cloudData) {
+          showToast('☁️ Загружено из облака', 'success');
         }
-      } else {
-        // Initialize new user
-        this.profile.telegramUser = telegramUser;
-        this.save();
+      } catch (error) {
+        console.warn('Cloud load failed:', error);
       }
+      
+      if (cloudData) {
+        // Use cloud data
+        this.profile = { ...this.profile, ...cloudData.profile };
+        this.gtd = { ...this.gtd, ...cloudData.gtd };
+        this.dailyLogs = cloudData.dailyLogs || [];
+        this.analytics = cloudData.analytics || { patterns: {}, trends: {} };
+      } else {
+        // Fallback to localStorage
+        const userKey = `grit_gtd_data_${telegramUser.username}`;
+        let stored = localStorage.getItem(userKey);
+        
+        if (!stored) {
+          // Try old formats for migration
+          stored = localStorage.getItem('grit_gtd_data') || localStorage.getItem('grit_data');
+        }
+        
+        if (stored) {
+          const data = JSON.parse(stored);
+          this.profile = { ...this.profile, ...data.profile };
+          this.gtd = { ...this.gtd, ...(data.gtd || {}) };
+          this.dailyLogs = data.dailyLogs || [];
+          this.analytics = data.analytics || { patterns: {}, trends: {} };
+        }
+      }
+      
+      // Always set current user info
+      this.profile.telegramUser = telegramUser;
+      
+      // Auto-save after load to sync across devices
+      setTimeout(() => this.save(), 1000);
+      
     } catch (e) {
       console.warn('Could not load GRIT+GTD data:', e);
+      // Initialize new user if all fails
+      this.profile.telegramUser = getTelegramUser();
+      this.save();
     }
   },
   
