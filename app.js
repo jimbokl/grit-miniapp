@@ -33,10 +33,12 @@ const cloudSync = {
   async saveToCloud(userData) {
     try {
       const telegramUser = getTelegramUser();
+      console.log('💾 Attempting to save to cloud for user:', telegramUser.username);
       
       // Save to real backend API
       const response = await fetch(`${this.baseUrl}/sync/${telegramUser.username}`, {
         method: 'POST',
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -50,16 +52,19 @@ const cloudSync = {
         })
       });
       
+      console.log('📡 Response status:', response.status);
+      
       if (response.ok) {
         const result = await response.json();
-        console.log('☁️ Data saved to cloud:', result.message);
+        console.log('✅ Cloud save successful:', result);
         return true;
       } else {
-        console.warn('Cloud save failed:', response.status);
+        const errorText = await response.text();
+        console.error('❌ Cloud save failed:', response.status, errorText);
         return false;
       }
     } catch (error) {
-      console.warn('Cloud sync failed:', error);
+      console.error('❌ Cloud sync failed:', error);
       return false;
     }
   },
@@ -67,28 +72,33 @@ const cloudSync = {
   async loadFromCloud() {
     try {
       const telegramUser = getTelegramUser();
+      console.log('📥 Attempting to load from cloud for user:', telegramUser.username);
       
       // Load from real backend API
       const response = await fetch(`${this.baseUrl}/sync/${telegramUser.username}`, {
         method: 'GET',
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
         }
       });
       
+      console.log('📡 Load response status:', response.status);
+      
       if (response.ok) {
         const result = await response.json();
-        console.log('☁️ Data loaded from cloud:', result.message);
+        console.log('✅ Cloud load successful:', result);
         return result.data;
       } else if (response.status === 404) {
-        console.log('📱 No cloud data found for user');
+        console.log('📱 No cloud data found for user - first time user');
         return null;
       } else {
-        console.warn('Cloud load failed:', response.status);
+        const errorText = await response.text();
+        console.error('❌ Cloud load failed:', response.status, errorText);
         return null;
       }
     } catch (error) {
-      console.warn('Cloud load failed:', error);
+      console.error('❌ Cloud load failed:', error);
       return null;
     }
   },
