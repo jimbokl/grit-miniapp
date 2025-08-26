@@ -747,19 +747,13 @@ const gritGtdUI = {
       </div>
     `;
     
-    document.body.appendChild(modal);
-    
-    // Close on backdrop click
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.remove();
-    });
-    
-    // Save button handler
+    // Add event handlers BEFORE adding to DOM
     const saveBtn = modal.querySelector('#save-goal');
     const cancelBtn = modal.querySelector('#cancel-edit');
     
+    // Save button handler
     if (saveBtn) {
-      saveBtn.addEventListener('click', () => {
+      saveBtn.onclick = () => {
         const newGoal = document.getElementById('edit-main-goal').value.trim();
         const targetDate = document.getElementById('edit-target-date').value;
         
@@ -774,14 +768,22 @@ const gritGtdUI = {
           showToast('🎯 Пожалуйста, укажите цель', 'warning');
           document.getElementById('edit-main-goal').focus();
         }
-      });
+      };
     }
     
+    // Cancel button handler
     if (cancelBtn) {
-      cancelBtn.addEventListener('click', () => {
+      cancelBtn.onclick = () => {
         modal.remove();
-      });
+      };
     }
+    
+    // Backdrop click to close
+    modal.onclick = (e) => {
+      if (e.target === modal) modal.remove();
+    };
+    
+    document.body.appendChild(modal);
     
     // ESC key to close
     const escHandler = (e) => {
@@ -845,48 +847,13 @@ const gritGtdUI = {
       </div>
     `;
     
-    document.body.appendChild(modal);
-    
-    // Initialize year select
-    const yearSelect = document.getElementById('year-select');
-    if (yearSelect) {
-      const currentYear = new Date().getFullYear();
-      for (let year = currentYear; year <= currentYear + 3; year++) {
-        const option = document.createElement('option');
-        option.value = year;
-        option.textContent = year;
-        yearSelect.appendChild(option);
-      }
-      yearSelect.value = currentYear;
-    }
-    
-    // Initialize month select to current month
-    const monthSelect = document.getElementById('month-select');
-    if (monthSelect) {
-      monthSelect.value = new Date().getMonth().toString();
-    }
-    
-    // Set default deadline to 3 months from now
-    const deadline = new Date();
-    deadline.setMonth(deadline.getMonth() + 3);
-    const defaultDate = deadline.toLocaleDateString('ru-RU', {
-      day: 'numeric',
-      month: 'long', 
-      year: 'numeric'
-    });
-    
-    const deadlineInput = document.getElementById('quarterly-deadline');
-    if (deadlineInput) {
-      deadlineInput.value = defaultDate;
-      deadlineInput.setAttribute('data-date', deadline.toISOString().split('T')[0]);
-    }
-    
-    // Button handlers with proper selectors
+    // Setup handlers BEFORE appending to DOM
     const saveQuarterlyBtn = modal.querySelector('#save-quarterly');
     const cancelQuarterlyBtn = modal.querySelector('#cancel-quarterly');
     
+    // Save button handler
     if (saveQuarterlyBtn) {
-      saveQuarterlyBtn.addEventListener('click', () => {
+      saveQuarterlyBtn.onclick = () => {
         const text = document.getElementById('quarterly-goal-text').value.trim();
         const deadlineInput = document.getElementById('quarterly-deadline');
         const deadline = deadlineInput.getAttribute('data-date') || deadlineInput.value;
@@ -906,14 +873,59 @@ const gritGtdUI = {
         this.renderQuarterlyGoals();
         showToast('🎲 Промежуточная цель добавлена!', 'success');
         modal.remove();
-      });
+      };
     }
     
+    // Cancel button handler
     if (cancelQuarterlyBtn) {
-      cancelQuarterlyBtn.addEventListener('click', () => {
+      cancelQuarterlyBtn.onclick = () => {
         modal.remove();
-      });
+      };
     }
+    
+    // Backdrop click handler
+    modal.onclick = (e) => {
+      if (e.target === modal) modal.remove();
+    };
+    
+    document.body.appendChild(modal);
+    
+    // Initialize date picker AFTER DOM append
+    setTimeout(() => {
+      // Initialize year select
+      const yearSelect = document.getElementById('year-select');
+      if (yearSelect) {
+        const currentYear = new Date().getFullYear();
+        for (let year = currentYear; year <= currentYear + 3; year++) {
+          const option = document.createElement('option');
+          option.value = year;
+          option.textContent = year;
+          yearSelect.appendChild(option);
+        }
+        yearSelect.value = currentYear;
+      }
+      
+      // Initialize month select to current month
+      const monthSelect = document.getElementById('month-select');
+      if (monthSelect) {
+        monthSelect.value = new Date().getMonth().toString();
+      }
+      
+      // Set default deadline to 3 months from now
+      const deadline = new Date();
+      deadline.setMonth(deadline.getMonth() + 3);
+      const defaultDate = deadline.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long', 
+        year: 'numeric'
+      });
+      
+      const deadlineInput = document.getElementById('quarterly-deadline');
+      if (deadlineInput) {
+        deadlineInput.value = defaultDate;
+        deadlineInput.setAttribute('data-date', deadline.toISOString().split('T')[0]);
+      }
+    }, 100);
     
     // ESC key to close
     const escHandler = (e) => {
@@ -1170,15 +1182,20 @@ const gritGtdUI = {
       </div>
     `;
     
-    document.body.appendChild(modal);
-    
-    // Close button handler for insights
+    // Setup close handler BEFORE appending
     const closeBtn = modal.querySelector('#close-insights');
     if (closeBtn) {
-      closeBtn.addEventListener('click', () => {
+      closeBtn.onclick = () => {
         modal.remove();
-      });
+      };
     }
+    
+    // Backdrop click handler
+    modal.onclick = (e) => {
+      if (e.target === modal) modal.remove();
+    };
+    
+    document.body.appendChild(modal);
     
     // ESC key to close insights
     const escHandler = (e) => {
