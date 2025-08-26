@@ -16,12 +16,12 @@ function getTelegramUser() {
     console.warn('Could not get Telegram user:', e);
   }
   
-  // Immediate fallback for web testing
+  // For testing as @fxadmins
   return {
-    id: 'demo_123',
-    username: 'demo_user',
-    firstName: 'Demo',
-    lastName: 'User'
+    id: 'fxadmins_123',
+    username: 'fxadmins',
+    firstName: 'FX',
+    lastName: 'Admin'
   };
 }
 
@@ -1695,16 +1695,22 @@ async function onReady() {
       focusType: focusType
     };
     
-    gritGtdData.save();
+    await gritGtdData.save(); // Force cloud save
     gritGtdUI.updateHeader();
     
     modal?.classList.add('hidden');
-    showToast('🔥 ГРИТ+Система настроена! Начинайте достигать!', 'success');
+    showToast('🔥 ГРИТ+Система настроена! Синхронизируется с облаком...', 'success');
     
     // Re-render everything after setup
     gritGtdUI.updateHeader();
     gritGtdUI.renderQuarterlyGoals();
     gritGtdUI.updateAnalytics();
+    
+    // Force immediate cloud sync
+    setTimeout(async () => {
+      await gritGtdData.save();
+      showToast('☁️ Ваши цели сохранены в облаке!', 'success');
+    }, 2000);
   });
   
   // TEST ALL FORMS
