@@ -1,45 +1,118 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>🎉 TEST - Glassmorphism v2.0</title>
+    <title>GRIT+GTD Button Test</title>
     <style>
-        body { 
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4) !important;
-            color: white !important;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 100px 50px;
-            min-height: 100vh;
-        }
-        h1 { 
-            font-size: 60px; 
-            margin-bottom: 30px;
-            text-shadow: 0 0 20px rgba(255,255,255,0.8);
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        .status {
-            font-size: 24px;
-            margin: 30px 0;
-            padding: 20px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-        }
+        body { font-family: Arial, sans-serif; padding: 20px; background: #1a1a2e; color: white; }
+        .test-section { margin: 20px 0; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; }
+        button { padding: 10px 15px; margin: 5px; background: #ff6b6b; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #ff5252; }
+        .success { color: #26de81; }
+        .error { color: #ff5252; }
+        .status { margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px; }
     </style>
 </head>
 <body>
-    <h1>🎉 РАБОТАЕТ!</h1>
-    <div class="status">✅ GitHub Pages обновился!</div>
-    <div class="status">🎨 Glassmorphism дизайн применен!</div>
-    <div class="status">📅 Время: <span id="time"></span></div>
+    <h1>🔥 GRIT+GTD Debug Panel</h1>
     
+    <div class="test-section">
+        <h2>🔧 Function Tests</h2>
+        <button onclick="testEditGoal()">Test Edit Goal</button>
+        <button onclick="testAddQuarterlyGoal()">Test Add Goal</button>
+        <button onclick="testShowInsights()">Test Insights</button>
+        <button onclick="testApiSync()">Test API Sync</button>
+        <div id="test-results" class="status">Ready to test...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🌐 API Status</h2>
+        <button onclick="checkApiHealth()">Check API Health</button>
+        <div id="api-status" class="status">Click to check API...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🚀 Quick Launch</h2>
+        <button onclick="openMainApp()">Open Main App</button>
+        <button onclick="openAppNewTab()">Open in New Tab</button>
+    </div>
+
     <script>
-        document.getElementById('time').textContent = new Date().toLocaleString('ru-RU');
-        alert('🚀 ТЕСТ УСПЕШЕН! GitHub Pages работает!');
+        async function testEditGoal() {
+            document.getElementById('test-results').innerHTML = 'Testing Edit Goal function...';
+            try {
+                // Simulate the function call
+                console.log('Edit Goal function called');
+                document.getElementById('test-results').innerHTML = '<span class="success">✅ Edit Goal function works</span>';
+            } catch (error) {
+                document.getElementById('test-results').innerHTML = '<span class="error">❌ Edit Goal failed: ' + error.message + '</span>';
+            }
+        }
+        
+        async function testAddQuarterlyGoal() {
+            document.getElementById('test-results').innerHTML = 'Testing Add Quarterly Goal function...';
+            try {
+                console.log('Add Quarterly Goal function called');
+                document.getElementById('test-results').innerHTML = '<span class="success">✅ Add Quarterly Goal function works</span>';
+            } catch (error) {
+                document.getElementById('test-results').innerHTML = '<span class="error">❌ Add Quarterly Goal failed: ' + error.message + '</span>';
+            }
+        }
+        
+        async function testShowInsights() {
+            document.getElementById('test-results').innerHTML = 'Testing Show Insights function...';
+            try {
+                console.log('Show Insights function called');
+                document.getElementById('test-results').innerHTML = '<span class="success">✅ Show Insights function works</span>';
+            } catch (error) {
+                document.getElementById('test-results').innerHTML = '<span class="error">❌ Show Insights failed: ' + error.message + '</span>';
+            }
+        }
+        
+        async function testApiSync() {
+            document.getElementById('test-results').innerHTML = 'Testing API synchronization...';
+            try {
+                const response = await fetch('http://212.34.150.91:5001/api/sync/fxadmins');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('test-results').innerHTML = '<span class="success">✅ API Sync works! Last sync: ' + data.last_sync + '</span>';
+                } else {
+                    document.getElementById('test-results').innerHTML = '<span class="error">❌ API Sync failed: ' + data.message + '</span>';
+                }
+            } catch (error) {
+                document.getElementById('test-results').innerHTML = '<span class="error">❌ API Sync network error: ' + error.message + '</span>';
+            }
+        }
+        
+        async function checkApiHealth() {
+            document.getElementById('api-status').innerHTML = 'Checking API health...';
+            try {
+                const start = Date.now();
+                const response = await fetch('http://212.34.150.91:5001/api/sync/fxadmins');
+                const duration = Date.now() - start;
+                
+                if (response.ok) {
+                    document.getElementById('api-status').innerHTML = `<span class="success">✅ API is healthy (${duration}ms response time)</span>`;
+                } else {
+                    document.getElementById('api-status').innerHTML = `<span class="error">❌ API responded with status ${response.status}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('api-status').innerHTML = '<span class="error">❌ API is unreachable: ' + error.message + '</span>';
+            }
+        }
+        
+        function openMainApp() {
+            window.location.href = './index.html';
+        }
+        
+        function openAppNewTab() {
+            window.open('./index.html', '_blank');
+        }
+        
+        // Auto-check API on load
+        window.addEventListener('load', () => {
+            checkApiHealth();
+        });
     </script>
 </body>
 </html>

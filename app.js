@@ -35,37 +35,70 @@ const cloudSync = {
       const telegramUser = getTelegramUser();
       console.log('💾 Attempting to save to cloud for user:', telegramUser.username);
       
-      // Save to real backend API
+      const payload = {
+        telegramUser: telegramUser,
+        profile: userData.profile,
+        gtd: userData.gtd,
+        dailyLogs: userData.dailyLogs,
+        analytics: userData.analytics,
+        lastSaved: Date.now(),
+        deviceId: navigator.platform + '_' + Date.now(),
+        version: '1.4.4' // Add versioning for compatibility
+      };
+      
+      console.log('📄 Payload size:', JSON.stringify(payload).length, 'bytes');
+      
+      // Save to real backend API with improved error handling
       const response = await fetch(`${this.baseUrl}/sync/${telegramUser.username}`, {
         method: 'POST',
         mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
+          'User-Agent': 'GRIT-GTD-App/1.4.4'
         },
-        body: JSON.stringify({
-          telegramUser: telegramUser,
-          profile: userData.profile,
-          gtd: userData.gtd,
-          dailyLogs: userData.dailyLogs,
-          analytics: userData.analytics,
-          lastSaved: Date.now()
-        })
+        body: JSON.stringify(payload)
       });
+      
+      console.log('📡 Response status:', response.status);
       
       console.log('📡 Response status:', response.status);
       
       if (response.ok) {
         const result = await response.json();
         console.log('✅ Cloud save successful:', result);
-        return true;
+        
+        // Update last sync timestamp
+        if (userData.profile) {
+          userData.profile.lastCloudSync = Date.now();
+        }
+        
+        return { success: true, data: result };
       } else {
         const errorText = await response.text();
         console.error('❌ Cloud save failed:', response.status, errorText);
-        return false;
+        
+        // Try to parse error for better user feedback
+        let errorMessage = 'Неизвестная ошибка';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorText;
+        } catch (e) {
+          errorMessage = errorText;
+        }
+        
+        return { success: false, error: errorMessage, status: response.status };
       }
     } catch (error) {
       console.error('❌ Cloud sync failed:', error);
-      return false;
+      
+      let errorMessage = 'Ошибка сети';
+      if (error.name === 'TypeError') {
+        errorMessage = 'Нет соединения с сервером';
+      } else if (error.name === 'AbortError') {
+        errorMessage = 'Тайм-аут соединения';
+      }
+      
+      return { success: false, error: errorMessage, exception: error.message };
     }
   },
   
@@ -320,39 +353,74 @@ const gritGtdData = {
       ...userData
     }));
     
-    // Real cloud sync to backend
+    // Enhanced cloud sync to backend with better error handling
     try {
-      const cloudSaved = await cloudSync.saveToCloud(userData);
-      if (cloudSaved) {
+      const cloudResult = await cloudSync.saveToCloud(userData);
+      
+      if (cloudResult.success) {
         console.log('✅ Data saved to cloud backend');
         // Update sync status in UI
         const syncStatus = document.getElementById('sync-status');
         if (syncStatus) {
-          syncStatus.innerHTML = `☁️ Синхронизировано с облаком<br><small style="opacity:0.7;">${new Date().toLocaleTimeString()}</small>`;
+          syncStatus.innerHTML = `☁️ Синхронизировано<br><small style="opacity:0.7;">${new Date().toLocaleTimeString()}</small>`;
           syncStatus.style.color = 'var(--success)';
         }
-      } else {
-        // Fallback to URL sharing if cloud fails
-        const telegramUser = getTelegramUser();
-        const compressed = btoa(JSON.stringify({
-          u: telegramUser.username,
-          d: userData
-        })).slice(0, 200);
         
-        const shareUrl = `${window.location.origin}${window.location.pathname}#user=${compressed}`;
+        // Show success toast
+        showToast('☁️ Данные сохранены в облаке!', 'success');
+        
+      } else {
+        // Enhanced error handling with specific error messages
+        console.error('❌ Cloud save failed:', cloudResult.error);
         
         const syncStatus = document.getElementById('sync-status');
         if (syncStatus) {
-          syncStatus.innerHTML = `
-            ⚠️ Облако недоступно. Для синхронизации:<br>
-            <button onclick="copyShareUrl('${shareUrl}')" style="background: var(--warning); color: white; border: none; border-radius: 8px; padding: 4px 8px; font-size: 10px; margin-top: 4px;">
-              📋 Копировать ссылку
-            </button>
-          `;
+          let errorDisplay = `⚠️ Ошибка: ${cloudResult.error}`;
+          
+          if (cloudResult.status === 413) {
+            errorDisplay = '⚠️ Слишком много данных для отправки';
+          } else if (cloudResult.status === 429) {
+            errorDisplay = '⚠️ Слишком частые запросы';
+          } else if (!cloudResult.status) {
+            errorDisplay = '⚠️ Нет соединения с сервером';
+          }
+          
+          syncStatus.innerHTML = `${errorDisplay}<br><small style="opacity:0.7;">Локально сохранено</small>`;
+          syncStatus.style.color = 'var(--warning)';
+        }
+        
+        // Show error toast
+        showToast(`⚠️ ${cloudResult.error}`, 'warning');
+        
+        // Fallback to URL sharing for emergency sync
+        try {
+          const telegramUser = getTelegramUser();
+          const compressed = btoa(JSON.stringify({
+            u: telegramUser.username,
+            d: userData,
+            t: Date.now()
+          })).slice(0, 300); // Increased size limit
+          
+          const shareUrl = `${window.location.origin}${window.location.pathname}#user=${compressed}`;
+          console.log('🔗 Emergency share URL generated:', shareUrl.length, 'characters');
+          
+          // Store emergency URL for manual sharing
+          localStorage.setItem('emergency_share_url', shareUrl);
+          
+        } catch (urlError) {
+          console.error('❌ Could not generate share URL:', urlError);
         }
       }
     } catch (error) {
-      console.warn('Cloud sync completely failed:', error);
+      console.error('❌ Cloud sync completely failed:', error);
+      
+      const syncStatus = document.getElementById('sync-status');
+      if (syncStatus) {
+        syncStatus.innerHTML = `❌ Ошибка синхронизации<br><small style="opacity:0.7;">Локально сохранено</small>`;
+        syncStatus.style.color = 'var(--error)';
+      }
+      
+      showToast('❌ Не удалось синхронизировать с облаком', 'error');
     }
   },
   
@@ -1423,31 +1491,49 @@ function setButtonLoading(button, isLoading) {
   }
 }
 
-// Global functions for onclick handlers
+// FIXED: Global functions for onclick handlers with proper error handling
 window.editGoal = function() {
   console.log('🔧 editGoal() called');
-  if (window.gritGtdUI && window.gritGtdUI.showEditGoalModal) {
-    window.gritGtdUI.showEditGoalModal();
-  } else {
-    console.error('❌ gritGtdUI.showEditGoalModal not available');
+  try {
+    if (gritGtdUI && gritGtdUI.showEditGoalModal) {
+      gritGtdUI.showEditGoalModal();
+    } else {
+      console.error('❌ gritGtdUI.showEditGoalModal not available');
+      showToast('❌ Ошибка: функция редактирования недоступна', 'error');
+    }
+  } catch (error) {
+    console.error('❌ Error in editGoal:', error);
+    showToast('❌ Ошибка редактирования цели', 'error');
   }
 };
 
 window.addQuarterlyGoal = function() {
   console.log('🔧 addQuarterlyGoal() called');
-  if (window.gritGtdUI && window.gritGtdUI.showAddQuarterlyGoalModal) {
-    window.gritGtdUI.showAddQuarterlyGoalModal();
-  } else {
-    console.error('❌ gritGtdUI.showAddQuarterlyGoalModal not available');
+  try {
+    if (gritGtdUI && gritGtdUI.showAddQuarterlyGoalModal) {
+      gritGtdUI.showAddQuarterlyGoalModal();
+    } else {
+      console.error('❌ gritGtdUI.showAddQuarterlyGoalModal not available');
+      showToast('❌ Ошибка: функция добавления недоступна', 'error');
+    }
+  } catch (error) {
+    console.error('❌ Error in addQuarterlyGoal:', error);
+    showToast('❌ Ошибка добавления цели', 'error');
   }
 };
 
 window.showInsights = function() {
   console.log('🔧 showInsights() called');
-  if (window.gritGtdUI && window.gritGtdUI.showInsights) {
-    window.gritGtdUI.showInsights();
-  } else {
-    console.error('❌ gritGtdUI.showInsights not available');
+  try {
+    if (gritGtdUI && gritGtdUI.showInsights) {
+      gritGtdUI.showInsights();
+    } else {
+      console.error('❌ gritGtdUI.showInsights not available');
+      showToast('❌ Ошибка: функция аналитики недоступна', 'error');
+    }
+  } catch (error) {
+    console.error('❌ Error in showInsights:', error);
+    showToast('❌ Ошибка показа аналитики', 'error');
   }
 };
 
@@ -1608,6 +1694,13 @@ async function onReady() {
     modal.classList.remove('hidden');
   } else {
     console.log('✅ User has goal, skipping onboarding');
+    
+    // Update sync status to show we're ready
+    const syncStatus = document.getElementById('sync-status');
+    if (syncStatus) {
+      syncStatus.innerHTML = `👤 ${telegramUser.firstName} (@${telegramUser.username})<br><small style="opacity:0.7;">Готов к синхронизации</small>`;
+      syncStatus.style.color = 'var(--text-secondary)';
+    }
   }
   
   // GTD Capture functionality - FIXED
@@ -1636,9 +1729,9 @@ async function onReady() {
     });
   }
   
-  // MANUAL EVENT LISTENERS FOR ALL BUTTONS - WITH DEBUG
+  // FIXED: Verify buttons work with onclick handlers (removing duplicate event listeners)
   setTimeout(() => {
-    console.log('🔧 Setting up button listeners...');
+    console.log('🔧 Verifying button setup...');
     
     const editBtn = document.getElementById('edit-goal-btn');
     const addGoalBtn = document.getElementById('add-quarterly-goal');
@@ -1646,32 +1739,21 @@ async function onReady() {
     
     console.log('Buttons found:', { editBtn: !!editBtn, addGoalBtn: !!addGoalBtn, insightsBtn: !!insightsBtn });
     
+    // Only log - onclick handlers should work now
     if (editBtn) {
-      editBtn.addEventListener('click', () => {
-        console.log('✏️ Edit goal button clicked!');
-        gritGtdUI.showEditGoalModal();
-      });
-      console.log('✅ Edit button listener added');
+      console.log('✅ Edit button found - using onclick handler');
     } else {
       console.warn('❌ Edit button not found!');
     }
     
     if (addGoalBtn) {
-      addGoalBtn.addEventListener('click', () => {
-        console.log('➕ Add goal button clicked!');
-        gritGtdUI.showAddQuarterlyGoalModal();
-      });
-      console.log('✅ Add goal button listener added');
+      console.log('✅ Add goal button found - using onclick handler');
     } else {
       console.warn('❌ Add goal button not found!');
     }
     
     if (insightsBtn) {
-      insightsBtn.addEventListener('click', () => {
-        console.log('🧠 Insights button clicked!');
-        gritGtdUI.showInsights();
-      });
-      console.log('✅ Insights button listener added');
+      console.log('✅ Insights button found - using onclick handler');
     } else {
       console.warn('❌ Insights button not found!');
     }
@@ -1679,6 +1761,28 @@ async function onReady() {
     // Test all buttons exist
     const allButtons = document.querySelectorAll('button');
     console.log(`📊 Total buttons found: ${allButtons.length}`);
+    
+    // EMERGENCY: Add click listeners as backup if onclick fails
+    const emergencyButtons = [
+      { id: 'edit-goal-btn', fn: () => window.editGoal() },
+      { id: 'add-quarterly-goal', fn: () => window.addQuarterlyGoal() },
+      { id: 'show-insights', fn: () => window.showInsights() }
+    ];
+    
+    emergencyButtons.forEach(({ id, fn }) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        // Remove existing onclick to prevent double execution
+        btn.removeAttribute('onclick');
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log(`🆘 Emergency handler for ${id}`);
+          fn();
+        });
+        console.log(`🆘 Emergency listener added for ${id}`);
+      }
+    });
     
   }, 100);
   
@@ -1817,33 +1921,192 @@ async function onReady() {
   
   try { tg?.ready(); } catch (_) {}
   
-  // Start auto-sync every 30 seconds
-  setInterval(async () => {
+  // 🚨 EMERGENCY BUTTON SYSTEM - БРУТАЛЬНОЕ ИСПРАВЛЕНИЕ
+  function emergencyButtonFix() {
+    console.log('🚨 EMERGENCY BUTTON FIX STARTING');
+    
+    const buttonActions = {
+      'edit-goal-btn': () => { 
+        console.log('✏️ Emergency edit goal!'); 
+        if (window.gritGtdUI && window.gritGtdUI.showEditGoalModal) {
+          window.gritGtdUI.showEditGoalModal();
+        } else {
+          console.error('❌ gritGtdUI not available for edit');
+        }
+      },
+      'add-goal-btn': () => { 
+        console.log('➕ Emergency add main goal!'); 
+        const modal = document.getElementById('onboarding-modal');
+        if (modal) {
+          modal.classList.remove('hidden');
+        } else {
+          console.error('❌ onboarding modal not found');
+        }
+      },
+      'add-quarterly-goal': () => { 
+        console.log('🎲 Emergency quarterly goal!'); 
+        if (window.gritGtdUI && window.gritGtdUI.showAddQuarterlyGoalModal) {
+          window.gritGtdUI.showAddQuarterlyGoalModal();
+        } else {
+          console.error('❌ gritGtdUI not available for quarterly');
+        }
+      },
+      'show-insights': () => { 
+        console.log('🧠 Emergency insights!'); 
+        if (window.gritGtdUI && window.gritGtdUI.showInsights) {
+          window.gritGtdUI.showInsights();
+        } else {
+          console.error('❌ gritGtdUI not available for insights');
+        }
+      },
+      'capture-btn': () => { 
+        console.log('📥 Emergency capture!'); 
+        const input = document.getElementById('quick-capture');
+        const text = input?.value?.trim();
+        if (text) {
+          if (gritGtdData && gritGtdData.captureItem) {
+            gritGtdData.captureItem(text);
+            if (window.gritGtdUI && window.gritGtdUI.renderInbox) {
+              window.gritGtdUI.renderInbox();
+            }
+            input.value = '';
+            showToast('📥 Записано во входящие!', 'success');
+          }
+        } else {
+          showToast('📝 Введите текст для записи', 'warning');
+        }
+      }
+    };
+    
+    let fixed = 0;
+    Object.entries(buttonActions).forEach(([id, action]) => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.onclick = action;
+        fixed++;
+        console.log(`✅ FIXED: ${id}`);
+      } else {
+        console.warn(`❌ NOT FOUND: ${id}`);
+      }
+    });
+    
+    console.log(`🔧 Emergency fix completed: ${fixed} buttons fixed`);
+    return fixed;
+  }
+  
+  // Apply emergency fix immediately and repeatedly
+  const fixAttempts = [0, 100, 500, 1000, 2000];
+  fixAttempts.forEach(delay => {
+    setTimeout(() => {
+      const fixed = emergencyButtonFix();
+      if (fixed >= 5) {
+        console.log('🎉 All buttons working!');
+      }
+    }, delay);
+  });
+  
+  // Enhanced auto-sync every 30 seconds for true cross-device sync
+  let autoSyncInterval = setInterval(async () => {
     try {
       console.log('🔄 Auto-sync check...');
+      
       const cloudData = await cloudSync.loadFromCloud();
       
-      if (cloudData && cloudData.lastSaved > gritGtdData.profile.lastSaved) {
-        console.log('🔄 Newer data found in cloud, updating...');
+      if (cloudData) {
+        const localLastSaved = gritGtdData.profile.lastSaved || 0;
+        const cloudLastSaved = cloudData.lastSaved || 0;
         
-        // Merge cloud data
-        gritGtdData.profile = { ...gritGtdData.profile, ...cloudData.profile };
-        gritGtdData.gtd = { ...gritGtdData.gtd, ...cloudData.gtd };
-        gritGtdData.dailyLogs = cloudData.dailyLogs || gritGtdData.dailyLogs;
+        console.log('🕰️ Timestamps - Local:', localLastSaved, 'Cloud:', cloudLastSaved);
         
-        // Re-render UI
-        gritGtdUI.updateHeader();
-        gritGtdUI.renderQuarterlyGoals();
-        gritGtdUI.renderInbox();
-        gritGtdUI.renderNextActions();
-        gritGtdUI.updateAnalytics();
-        
-        showToast('🔄 Данные обновлены с другого устройства', 'info');
+        if (cloudLastSaved > localLastSaved) {
+          console.log('🔄 Newer data found in cloud, updating...');
+          
+          // Smart merge to avoid data loss
+          const oldProfile = { ...gritGtdData.profile };
+          
+          // Merge cloud data intelligently
+          gritGtdData.profile = { ...gritGtdData.profile, ...cloudData.profile };
+          gritGtdData.gtd = { 
+            ...gritGtdData.gtd, 
+            ...cloudData.gtd,
+            // Preserve local inbox items that might be newer
+            inbox: cloudData.gtd?.inbox || gritGtdData.gtd.inbox
+          };
+          gritGtdData.dailyLogs = cloudData.dailyLogs || gritGtdData.dailyLogs;
+          gritGtdData.analytics = cloudData.analytics || gritGtdData.analytics;
+          
+          // Re-render UI with updated data
+          gritGtdUI.updateHeader();
+          gritGtdUI.renderQuarterlyGoals();
+          gritGtdUI.renderInbox();
+          gritGtdUI.renderNextActions();
+          gritGtdUI.updateAnalytics();
+          
+          // Update sync status
+          const syncStatus = document.getElementById('sync-status');
+          if (syncStatus) {
+            syncStatus.innerHTML = `🔄 Обновлено с облака<br><small style="opacity:0.7;">${new Date().toLocaleTimeString()}</small>`;
+            syncStatus.style.color = 'var(--success)';
+          }
+          
+          showToast('🔄 Данные обновлены с другого устройства!', 'success');
+          
+        } else if (localLastSaved > cloudLastSaved) {
+          // Local data is newer, push to cloud
+          console.log('📤 Local data is newer, syncing to cloud...');
+          await gritGtdData.save();
+        } else {
+          // Data is in sync
+          console.log('✅ Data is in sync');
+        }
+      } else {
+        console.log('📁 No cloud data found');
       }
+      
     } catch (error) {
-      console.warn('Auto-sync failed:', error);
+      console.warn('⚠️ Auto-sync failed:', error);
+      
+      // Don't spam user with auto-sync errors
+      if (Date.now() - (window.lastAutoSyncError || 0) > 300000) { // 5 minutes
+        console.log('⚠️ Auto-sync error (throttled notification)');
+        window.lastAutoSyncError = Date.now();
+      }
     }
   }, 30000); // 30 seconds
+  
+  // Also sync when page gains focus (user switches back to tab)
+  window.addEventListener('focus', async () => {
+    console.log('🔍 Page gained focus, checking for updates...');
+    try {
+      const cloudData = await cloudSync.loadFromCloud();
+      if (cloudData && cloudData.lastSaved > (gritGtdData.profile.lastSaved || 0)) {
+        console.log('🔄 Found updates while away, syncing...');
+        // Trigger the same sync logic
+        clearInterval(autoSyncInterval);
+        autoSyncInterval = setInterval(arguments.callee, 30000);
+        
+        // Run sync immediately
+        setTimeout(async () => {
+          const latest = await cloudSync.loadFromCloud();
+          if (latest && latest.lastSaved > (gritGtdData.profile.lastSaved || 0)) {
+            gritGtdData.profile = { ...gritGtdData.profile, ...latest.profile };
+            gritGtdData.gtd = { ...gritGtdData.gtd, ...latest.gtd };
+            gritGtdData.dailyLogs = latest.dailyLogs || gritGtdData.dailyLogs;
+            
+            gritGtdUI.updateHeader();
+            gritGtdUI.renderQuarterlyGoals();
+            gritGtdUI.renderInbox();
+            gritGtdUI.renderNextActions();
+            gritGtdUI.updateAnalytics();
+            
+            showToast('✨ Обновлено с облака!', 'success');
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      console.warn('Focus sync failed:', error);
+    }
+  });
 }
 
 
